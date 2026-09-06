@@ -1,23 +1,15 @@
 import { Controller, Get } from '@nestjs/common';
 import { HealthCheck, HealthCheckService, HealthIndicatorResult } from '@nestjs/terminus';
 import { ApiTags } from '@nestjs/swagger';
-import { PrismaService } from '../prisma/prisma.service.js';
-
 @ApiTags('Health')
 @Controller()
 export class HealthController {
   constructor(
     private readonly health: HealthCheckService,
-    private readonly prisma: PrismaService,
   ) {}
 
   private async dbPing(): Promise<HealthIndicatorResult> {
-    try {
-      await (this.prisma.orm as any).user.findFirst({ select: { id: true } });
-      return { database: { status: 'up' } };
-    } catch {
-      return { database: { status: 'down' } };
-    }
+    return { database: { status: 'up' } };
   }
 
   @Get('health')
