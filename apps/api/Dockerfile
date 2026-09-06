@@ -1,6 +1,9 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+# argon2 is a native addon — needs build tools
+RUN apk add --no-cache python3 make g++
+
 # Copy root workspace files
 COPY package*.json ./
 COPY tsconfig.base.json ./
