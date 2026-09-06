@@ -64,12 +64,12 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://YOUR_VPS_IP:3001
+        NEXT_PUBLIC_API_URL: http://:3001
     image: srj_sarthi_web
     container_name: srj_sarthi_web
     restart: unless-stopped
     ports:
-      - '3002:3002'
+      - '3006:3002'
     depends_on:
       - api
     networks:
