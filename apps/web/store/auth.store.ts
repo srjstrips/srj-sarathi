@@ -44,9 +44,10 @@ export const useAuthStore = create<AuthState>()(
           localStorage.setItem('refresh_token', data.refreshToken);
           set({ accessToken: data.accessToken, refreshToken: data.refreshToken });
           // fetch user profile with the new token
-          const { data: me } = await api.get('/auth/me', {
+          const { data: meResp } = await api.get('/auth/me', {
             headers: { Authorization: `Bearer ${data.accessToken}` },
           });
+          const me = meResp.data ?? meResp;
           const mapped: AuthUser = {
             id:          me.id,
             email:       me.email,
@@ -81,7 +82,8 @@ export const useAuthStore = create<AuthState>()(
         const token = localStorage.getItem('access_token');
         if (!token) { set({ isInitialized: true }); return; }
         try {
-          const { data: me } = await api.get('/auth/me');
+          const { data: meResp } = await api.get('/auth/me');
+          const me = meResp.data ?? meResp;
           const mapped: AuthUser = {
             id:          me.id,
             email:       me.email,
