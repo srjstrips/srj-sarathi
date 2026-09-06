@@ -1,0 +1,848 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+  SUSPENDED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  ON_LEAVE
+  RESIGNED
+  TERMINATED
+  EXITED
+}
+
+enum SessionStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+  LOGGED_OUT
+}
+
+enum SecurityEventType {
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  LOGOUT
+  SESSION_CREATED
+  SESSION_REVOKED
+  PASSWORD_CHANGED
+  PASSWORD_RESET
+  OTP_REQUESTED
+  OTP_FAILED
+  ACCOUNT_BLOCKED
+  ACCOUNT_UNBLOCKED
+  IP_BLOCKED
+  IP_UNBLOCKED
+  ROLE_CHANGED
+  PERMISSION_CHANGED
+  DEVICE_REGISTERED
+  DEVICE_BLOCKED
+  SUSPICIOUS_LOGIN
+}
+
+enum SecurityEventSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// ─── Organization ─────────────────────────────────────────────────────────────
+
+model Company {
+  id          String   @id @default(uuid())
+  name        String   @db.VarChar(200)
+  code        String   @unique @db.VarChar(20)
+  legalName   String?  @db.VarChar(200)
+  description String?
+  logoUrl     String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  locations   Location[]
+  employees   Employee[]
+}
+
+model Location {
+  id          String   @id @default(uuid())
+  companyId   String
+  name        String   @db.VarChar(200)
+  code        String   @db.VarChar(20)
+  address     String?
+  city        String?  @db.VarChar(100)
+  state       String?  @db.VarChar(100)
+  country     String?  @db.VarChar(100)
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company    @relation(fields: [companyId], references: [id])
+  divisions   Division[]
+  employees   Employee[]
+
+  @@unique([companyId, code])
+}
+
+model Division {
+  id          String   @id @default(uuid())
+  locationId  String
+  name        String   @db.VarChar(200)
+  code        String   @db.VarChar(20)
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  location    Location     @relation(fields: [locationId], references: [id])
+  departments Department[]
+  employees   Employee[]
+
+  @@unique([locationId, code])
+}
+
+model Department {
+  id           String   @id @default(uuid())
+  divisionId   String
+  name         String   @db.VarChar(200)
+  code         String   @db.VarChar(20)
+  description  String?
+  hodId        String?
+  parentId     String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  division    Division    @relation(fields: [divisionId], references: [id])
+  parent      Department? @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children    Department[] @relation("DepartmentHierarchy")
+  sections    Section[]
+  employees   Employee[]
+
+  @@unique([divisionId, code])
+  @@index([hodId])
+}
+
+model Section {
+  id           String   @id @default(uuid())
+  departmentId String
+  name         String   @db.VarChar(200)
+  code         String?  @db.VarChar(20)
+  description  String?
+  subHodId     String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  department   Department    @relation(fields: [departmentId], references: [id])
+  designations Designation[]
+  employees    Employee[]
+
+  @@index([departmentId])
+}
+
+model Designation {
+  id           String   @id @default(uuid())
+  name         String   @db.VarChar(200)
+  code         String?  @unique @db.VarChar(20)
+  description  String?
+  level        Int      @default(0)
+  jobGradeId   String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Legacy relation kept for backward compat — sectionId removed
+  sectionId    String?
+  section      Section?   @relation(fields: [sectionId], references: [id])
+
+  jobGrade     JobGrade?  @relation(fields: [jobGradeId], references: [id])
+  employees    Employee[]
+}
+
+model JobGrade {
+  id           String   @id @default(uuid())
+  code         String   @unique @db.VarChar(20)
+  name         String   @db.VarChar(100)
+  description  String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  designations Designation[]
+  employees    Employee[]
+}
+
+model EmploymentType {
+  id          String   @id @default(uuid())
+  code        String   @unique @db.VarChar(20)
+  name        String   @db.VarChar(100)
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employees   Employee[]
+}
+
+model EmploymentCategory {
+  id          String   @id @default(uuid())
+  code        String   @unique @db.VarChar(20)
+  name        String   @db.VarChar(100)
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employees   Employee[]
+}
+
+model EmployeeStatusConfig {
+  id           String   @id @default(uuid())
+  code         String   @unique @db.VarChar(20)
+  name         String   @db.VarChar(100)
+  description  String?
+  isSystem     Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ─── RBAC ─────────────────────────────────────────────────────────────────────
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique @db.VarChar(50)
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  resource    String   @db.VarChar(100)
+  action      String   @db.VarChar(100)
+  description String?
+  createdAt   DateTime @default(now())
+
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+}
+
+model UserRole {
+  id        String   @id @default(uuid())
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+}
+
+model RolePermission {
+  id           String   @id @default(uuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+// ─── Users & Employees ────────────────────────────────────────────────────────
+
+model User {
+  id                String     @id @default(uuid())
+  username          String     @unique @db.VarChar(50)
+  email             String?    @unique @db.VarChar(200)
+  phone             String?    @unique @db.VarChar(20)
+  passwordHash      String
+  status            UserStatus @default(ACTIVE)
+  emailVerified     Boolean    @default(false)
+  phoneVerified     Boolean    @default(false)
+  lastLoginAt       DateTime?
+  passwordChangedAt DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  deletedAt         DateTime?
+
+  employee        Employee?
+  userRoles       UserRole[]
+  sessions        UserSession[]
+  loginAttempts   LoginAttempt[]
+  securityEvents  SecurityEvent[]
+  blockedUser     BlockedUser?
+  devices         UserDevice[]
+  uploadedDocs    EmployeeDocument[] @relation("DocumentUploadedBy")
+  verifiedDocs    EmployeeDocument[] @relation("DocumentVerifiedBy")
+  orgHistories    EmployeeOrgHistory[]
+  importJobs      EmployeeImportJob[]  @relation("ImportInitiatedBy")
+  confirmedImports EmployeeImportJob[] @relation("ImportConfirmedBy")
+  exportJobs      EmployeeExportJob[]
+}
+
+model Employee {
+  id                   String         @id @default(uuid())
+  userId               String?        @unique
+  employeeCode         String         @unique @db.VarChar(50)
+  companyId            String
+  locationId           String?
+  divisionId           String?
+  departmentId         String?
+  sectionId            String?
+  designationId        String?
+  jobGradeId           String?
+  employmentTypeId     String?
+  employmentCategoryId String?
+  employeeStatusId     String?
+  managerId            String?
+  hodId                String?
+  subHodId             String?
+  firstName            String         @db.VarChar(100)
+  lastName             String         @db.VarChar(100)
+  displayName          String?        @db.VarChar(200)
+  gender               Gender?
+  maritalStatus        String?        @db.VarChar(20)
+  dateOfBirth          DateTime?      @db.Date
+  joiningDate          DateTime       @db.Date
+  exitDate             DateTime?      @db.Date
+  officialEmail        String?        @db.VarChar(200)
+  personalEmail        String?        @db.VarChar(200)
+  mobile               String?        @db.VarChar(20)
+  profilePicUrl        String?
+  status               EmployeeStatus @default(ACTIVE)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  deletedAt            DateTime?
+
+  user               User?               @relation(fields: [userId], references: [id])
+  company            Company             @relation(fields: [companyId], references: [id])
+  location           Location?           @relation(fields: [locationId], references: [id])
+  division           Division?           @relation(fields: [divisionId], references: [id])
+  department         Department?         @relation(fields: [departmentId], references: [id])
+  section            Section?            @relation(fields: [sectionId], references: [id])
+  designation        Designation?        @relation(fields: [designationId], references: [id])
+  jobGrade           JobGrade?           @relation(fields: [jobGradeId], references: [id])
+  employmentType     EmploymentType?     @relation(fields: [employmentTypeId], references: [id])
+  employmentCategory EmploymentCategory? @relation(fields: [employmentCategoryId], references: [id])
+  manager            Employee?           @relation("ManagerRelation", fields: [managerId], references: [id])
+  directReports      Employee[]          @relation("ManagerRelation")
+  emergencyContacts  EmergencyContact[]
+  bankDetail         EmployeeBankDetail?
+  documents          EmployeeDocument[]
+  customFieldValues  EmployeeCustomFieldValue[]
+  orgHistories       EmployeeOrgHistory[]
+  importRows         EmployeeImportRow[]
+
+  @@index([employeeCode])
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([sectionId])
+  @@index([designationId])
+  @@index([managerId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model EmergencyContact {
+  id             String   @id @default(uuid())
+  employeeId     String
+  name           String   @db.VarChar(200)
+  relationship   String?  @db.VarChar(100)
+  phone          String   @db.VarChar(20)
+  alternatePhone String?  @db.VarChar(20)
+  address        String?
+  priority       Int      @default(1)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+}
+
+model EmployeeBankDetail {
+  id            String   @id @default(uuid())
+  employeeId    String   @unique
+  accountName   String   @db.VarChar(200)
+  accountNumber String   @db.VarChar(50)
+  ifsc          String   @db.VarChar(20)
+  bankName      String?  @db.VarChar(200)
+  branch        String?  @db.VarChar(200)
+  isVerified    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model EmployeeOrgHistory {
+  id            String    @id @default(uuid())
+  employeeId    String
+  changeType    String    @db.VarChar(50)
+  oldValue      String?
+  newValue      String?
+  changedById   String?
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  createdAt     DateTime  @default(now())
+
+  employee  Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  changedBy User?    @relation(fields: [changedById], references: [id])
+
+  @@index([employeeId])
+  @@index([changeType])
+}
+
+// ─── Documents ────────────────────────────────────────────────────────────────
+
+model DocumentCategory {
+  id                   String   @id @default(uuid())
+  code                 String   @unique @db.VarChar(20)
+  name                 String   @db.VarChar(200)
+  description          String?
+  isRequired           Boolean  @default(false)
+  allowedMimeTypes     String?
+  maxFileSizeMb        Int      @default(10)
+  issueDateRequired    Boolean  @default(false)
+  expiryDateRequired   Boolean  @default(false)
+  verificationRequired Boolean  @default(false)
+  isActive             Boolean  @default(true)
+  displayOrder         Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  documents    EmployeeDocument[]
+  requirements DocumentRequirement[]
+}
+
+model DocumentRequirement {
+  id                 String   @id @default(uuid())
+  documentCategoryId String
+  scopeType          String   @db.VarChar(50)
+  scopeId            String?
+  isRequired         Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  category DocumentCategory @relation(fields: [documentCategoryId], references: [id])
+
+  @@index([documentCategoryId])
+  @@index([scopeType, scopeId])
+}
+
+model EmployeeDocument {
+  id                 String    @id @default(uuid())
+  employeeId         String
+  categoryId         String
+  filename           String    @db.VarChar(500)
+  mimeType           String    @db.VarChar(100)
+  sizeBytes          BigInt?
+  storageKey         String
+  documentNumber     String?   @db.VarChar(100)
+  issueDate          DateTime? @db.Date
+  expiryDate         DateTime? @db.Date
+  verificationStatus String    @default("PENDING") @db.VarChar(20)
+  verifiedById       String?
+  verifiedAt         DateTime?
+  verificationNote   String?
+  uploadedById       String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
+
+  employee   Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  category   DocumentCategory @relation(fields: [categoryId], references: [id])
+  verifiedBy User?            @relation("DocumentVerifiedBy", fields: [verifiedById], references: [id])
+  uploadedBy User?            @relation("DocumentUploadedBy", fields: [uploadedById], references: [id])
+
+  @@index([employeeId])
+  @@index([categoryId])
+}
+
+// ─── Custom Fields ────────────────────────────────────────────────────────────
+
+model EmployeeCustomField {
+  id             String   @id @default(uuid())
+  code           String   @unique @db.VarChar(50)
+  name           String   @db.VarChar(200)
+  fieldType      String   @db.VarChar(20)
+  isRequired     Boolean  @default(false)
+  defaultValue   String?
+  options        Json?
+  validationRule String?
+  visibleTo      String?
+  editableBy     String?
+  displayOrder   Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  values EmployeeCustomFieldValue[]
+}
+
+model EmployeeCustomFieldValue {
+  id         String   @id @default(uuid())
+  employeeId String
+  fieldId    String
+  value      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  employee Employee            @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  field    EmployeeCustomField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, fieldId])
+}
+
+// ─── Import / Export ──────────────────────────────────────────────────────────
+
+model ImportTemplate {
+  id                String   @id @default(uuid())
+  name              String   @db.VarChar(200)
+  description       String?
+  templateType      String   @db.VarChar(50)
+  duplicateStrategy String   @default("SKIP") @db.VarChar(20)
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  mappings    ImportTemplateMapping[]
+  importJobs  EmployeeImportJob[]
+}
+
+model ImportTemplateMapping {
+  id           String   @id @default(uuid())
+  templateId   String
+  sourceColumn String   @db.VarChar(200)
+  targetField  String   @db.VarChar(100)
+  isRequired   Boolean  @default(false)
+  defaultValue String?
+  transformation String?
+  displayOrder Int      @default(0)
+
+  template ImportTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+}
+
+model EmployeeImportJob {
+  id                String    @id @default(uuid())
+  templateId        String?
+  initiatedById     String
+  status            String    @default("PENDING") @db.VarChar(20)
+  filename          String?   @db.VarChar(500)
+  storageKey        String?
+  totalRows         Int?
+  validRows         Int?
+  errorRows         Int?
+  createdRows       Int?
+  updatedRows       Int?
+  skippedRows       Int?
+  duplicateStrategy String    @default("SKIP") @db.VarChar(20)
+  confirmedById     String?
+  confirmedAt       DateTime?
+  completedAt       DateTime?
+  failedAt          DateTime?
+  errorSummary      String?
+  resultStorageKey  String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  template    ImportTemplate?    @relation(fields: [templateId], references: [id])
+  initiatedBy User               @relation("ImportInitiatedBy", fields: [initiatedById], references: [id])
+  confirmedBy User?              @relation("ImportConfirmedBy", fields: [confirmedById], references: [id])
+  rows        EmployeeImportRow[]
+
+  @@index([status])
+  @@index([initiatedById])
+}
+
+model EmployeeImportRow {
+  id               String   @id @default(uuid())
+  jobId            String
+  rowNumber        Int
+  status           String   @default("PENDING") @db.VarChar(20)
+  rawData          Json?
+  mappedData       Json?
+  validationErrors Json?
+  action           String?  @db.VarChar(20)
+  employeeId       String?
+  createdAt        DateTime @default(now())
+
+  job      EmployeeImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  employee Employee?         @relation(fields: [employeeId], references: [id])
+
+  @@index([jobId])
+  @@index([status])
+}
+
+model EmployeeExportJob {
+  id            String    @id @default(uuid())
+  requestedById String
+  status        String    @default("PENDING") @db.VarChar(20)
+  filters       Json?
+  fields        Json?
+  totalRows     Int?
+  storageKey    String?
+  expiresAt     DateTime?
+  completedAt   DateTime?
+  failedAt      DateTime?
+  errorMsg      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  requestedBy User @relation(fields: [requestedById], references: [id])
+
+  @@index([requestedById])
+  @@index([status])
+}
+
+// ─── Security ─────────────────────────────────────────────────────────────────
+
+model UserSession {
+  id               String        @id @default(uuid())
+  userId           String
+  sessionTokenHash String        @unique
+  refreshTokenHash String?       @unique
+  ipAddress        String?       @db.VarChar(45)
+  userAgent        String?
+  deviceId         String?
+  appVersion       String?       @db.VarChar(50)
+  status           SessionStatus @default(ACTIVE)
+  createdAt        DateTime      @default(now())
+  lastActivityAt   DateTime      @default(now())
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  logoutAt         DateTime?
+
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device UserDevice? @relation(fields: [deviceId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+model LoginAttempt {
+  id                String   @id @default(uuid())
+  userId            String?
+  usernameAttempted String   @db.VarChar(200)
+  ipAddress         String?  @db.VarChar(45)
+  userAgent         String?
+  deviceId          String?
+  success           Boolean
+  failureReason     String?  @db.VarChar(200)
+  createdAt         DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([ipAddress])
+  @@index([createdAt])
+}
+
+model SecurityEvent {
+  id        String                @id @default(uuid())
+  userId    String?
+  eventType SecurityEventType
+  ipAddress String?               @db.VarChar(45)
+  deviceId  String?
+  metadata  Json?
+  severity  SecurityEventSeverity @default(LOW)
+  createdAt DateTime              @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model BlockedIp {
+  id          String    @id @default(uuid())
+  ipAddress   String    @unique @db.VarChar(45)
+  reason      String?
+  blockedById String?
+  isPermanent Boolean   @default(false)
+  blockedAt   DateTime  @default(now())
+  expiresAt   DateTime?
+}
+
+model BlockedUser {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  reason      String?
+  blockedById String?
+  isPermanent Boolean   @default(false)
+  blockedAt   DateTime  @default(now())
+  expiresAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserDevice {
+  id          String   @id @default(uuid())
+  userId      String
+  deviceToken String   @unique
+  platform    String   @db.VarChar(20)
+  model       String?  @db.VarChar(100)
+  osVersion   String?  @db.VarChar(50)
+  appVersion  String?  @db.VarChar(50)
+  pushToken   String?
+  isBlocked   Boolean  @default(false)
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions UserSession[]
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String   @db.VarChar(100)
+  resource   String   @db.VarChar(100)
+  resourceId String?
+  metadata   Json?
+  ipAddress  String?  @db.VarChar(45)
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ─── Privacy ──────────────────────────────────────────────────────────────────
+
+model PrivacyPolicy {
+  id          String   @id @default(uuid())
+  policyType  String   @db.VarChar(50)
+  version     String   @db.VarChar(20)
+  title       String   @db.VarChar(200)
+  content     String
+  status      String   @default("DRAFT") @db.VarChar(20)
+  effectiveAt DateTime?
+  publishedAt DateTime?
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  consents PrivacyConsent[]
+}
+
+model PrivacyConsent {
+  id            String    @id @default(uuid())
+  userId        String
+  policyId      String
+  policyVersion String    @db.VarChar(20)
+  status        String    @db.VarChar(20)
+  ipAddress     String?   @db.VarChar(45)
+  userAgent     String?
+  deviceId      String?
+  acceptedAt    DateTime  @default(now())
+  revokedAt     DateTime?
+
+  policy PrivacyPolicy @relation(fields: [policyId], references: [id])
+
+  @@index([userId])
+  @@index([policyId])
+}
+
+model DataExportJob {
+  id          String    @id @default(uuid())
+  userId      String
+  status      String    @db.VarChar(20)
+  storageKey  String?
+  downloadUrl String?
+  expiresAt   DateTime?
+  completedAt DateTime?
+  failedAt    DateTime?
+  errorMsg    String?
+  requestedAt DateTime  @default(now())
+}
+
+model DataCorrectionRequest {
+  id             String    @id @default(uuid())
+  userId         String
+  field          String    @db.VarChar(100)
+  requestedValue String
+  reason         String?
+  status         String    @db.VarChar(20)
+  reviewedById   String?
+  reviewNote     String?
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model AccountDeletionRequest {
+  id           String    @id @default(uuid())
+  userId       String
+  status       String    @db.VarChar(30)
+  reason       String?
+  reviewedById String?
+  verifiedAt   DateTime?
+  scheduledAt  DateTime?
+  completedAt  DateTime?
+  cancelledAt  DateTime?
+  requestedAt  DateTime  @default(now())
+}
+
+model RetentionPolicy {
+  id                    String   @id @default(uuid())
+  dataCategory          String   @unique @db.VarChar(100)
+  retentionDays         Int
+  retentionBasis        String?
+  deletionBehavior      String   @db.VarChar(50)
+  anonymizationBehavior String?  @db.VarChar(50)
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model PrivacyRequest {
+  id           String    @id @default(uuid())
+  userId       String
+  requestType  String    @db.VarChar(50)
+  description  String?
+  status       String    @db.VarChar(20)
+  reviewedById String?
+  reviewNote   String?
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}

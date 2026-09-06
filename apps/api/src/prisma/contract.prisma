@@ -1,0 +1,1826 @@
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+  SUSPENDED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  ON_LEAVE
+  RESIGNED
+  TERMINATED
+  EXITED
+}
+
+enum SessionStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+  LOGGED_OUT
+}
+
+enum SecurityEventType {
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  LOGOUT
+  SESSION_CREATED
+  SESSION_REVOKED
+  PASSWORD_CHANGED
+  PASSWORD_RESET
+  OTP_REQUESTED
+  OTP_FAILED
+  ACCOUNT_BLOCKED
+  ACCOUNT_UNBLOCKED
+  IP_BLOCKED
+  IP_UNBLOCKED
+  ROLE_CHANGED
+  PERMISSION_CHANGED
+  DEVICE_REGISTERED
+  DEVICE_BLOCKED
+  SUSPICIOUS_LOGIN
+}
+
+enum SecurityEventSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// ─── Privacy enums ────────────────────────────────────────────────────────────
+
+enum PolicyType {
+  PRIVACY_POLICY
+  TERMS_OF_USE
+  COOKIE_POLICY
+  DATA_RETENTION_POLICY
+  SECURITY_POLICY
+}
+
+enum PolicyStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ConsentStatus {
+  ACCEPTED
+  DECLINED
+  REVOKED
+  REQUIRED_REACCEPTANCE
+}
+
+enum PrivacyRequestType {
+  ACCESS
+  EXPORT
+  CORRECTION
+  DELETION
+  PRIVACY_QUESTION
+}
+
+enum PrivacyRequestStatus {
+  PENDING
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum AccountDeletionStatus {
+  DELETION_REQUESTED
+  VERIFICATION_REQUIRED
+  VERIFIED
+  SCHEDULED
+  PROCESSING
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum DataExportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+// ─── Organization ─────────────────────────────────────────────────────────────
+
+model Company {
+  id          String      @id @default(uuid())
+  name        VarChar(200)
+  code        VarChar(20) @unique
+  legalName   VarChar(200)?
+  description String?
+  logoUrl     String?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now())
+
+  locations Location[]
+  employees Employee[]
+  projects  Project[]
+}
+
+model Location {
+  id          String      @id @default(uuid())
+  companyId   String
+  name        VarChar(200)
+  code        VarChar(20)
+  address     String?
+  city        VarChar(100)?
+  state       VarChar(100)?
+  country     VarChar(100)?
+  description String?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now())
+
+  company   Company    @relation(fields: [companyId], references: [id])
+  divisions Division[]
+  employees Employee[]
+
+  @@unique([companyId, code])
+}
+
+model Division {
+  id          String      @id @default(uuid())
+  locationId  String
+  name        VarChar(200)
+  code        VarChar(20)
+  description String?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now())
+
+  location    Location     @relation(fields: [locationId], references: [id])
+  departments Department[]
+  employees   Employee[]
+
+  @@unique([locationId, code])
+}
+
+model Department {
+  id           String      @id @default(uuid())
+  divisionId   String
+  name         VarChar(200)
+  code         VarChar(20)
+  description  String?
+  hodId        String?
+  parentId     String?
+  displayOrder Int         @default(0)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @default(now())
+
+  division  Division     @relation(fields: [divisionId], references: [id])
+  parent    Department?  @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children  Department[] @relation("DepartmentHierarchy")
+  sections  Section[]
+  employees Employee[]
+  projects  Project[]
+  tasks     Task[]
+  kaizens   Kaizen[]
+
+  @@unique([divisionId, code])
+  @@index([hodId])
+}
+
+model Section {
+  id           String      @id @default(uuid())
+  departmentId String
+  name         VarChar(200)
+  code         VarChar(20)?
+  description  String?
+  subHodId     String?
+  displayOrder Int         @default(0)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @default(now())
+
+  department   Department    @relation(fields: [departmentId], references: [id])
+  designations Designation[]
+  employees    Employee[]
+
+  @@index([departmentId])
+}
+
+model Designation {
+  id           String      @id @default(uuid())
+  name         VarChar(200)
+  code         VarChar(20)? @unique
+  description  String?
+  level        Int         @default(0)
+  jobGradeId   String?
+  displayOrder Int         @default(0)
+  sectionId    String?
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @default(now())
+
+  section   Section?   @relation(fields: [sectionId], references: [id])
+  jobGrade  JobGrade?  @relation(fields: [jobGradeId], references: [id])
+  employees Employee[]
+}
+
+model JobGrade {
+  id           String      @id @default(uuid())
+  code         VarChar(20) @unique
+  name         VarChar(100)
+  description  String?
+  displayOrder Int         @default(0)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @default(now())
+
+  designations Designation[]
+  employees    Employee[]
+}
+
+model EmploymentType {
+  id          String      @id @default(uuid())
+  code        VarChar(20) @unique
+  name        VarChar(100)
+  description String?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now())
+
+  employees Employee[]
+}
+
+model EmploymentCategory {
+  id          String      @id @default(uuid())
+  code        VarChar(20) @unique
+  name        VarChar(100)
+  description String?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now())
+
+  employees Employee[]
+}
+
+model EmployeeStatusConfig {
+  id           String      @id @default(uuid())
+  code         VarChar(20) @unique
+  name         VarChar(100)
+  description  String?
+  isSystem     Boolean     @default(false)
+  isActive     Boolean     @default(true)
+  displayOrder Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @default(now())
+}
+
+// ─── RBAC ─────────────────────────────────────────────────────────────────────
+
+model Role {
+  id          String      @id @default(uuid())
+  name        VarChar(50) @unique
+  description String?
+  isSystem    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now())
+
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+}
+
+model Permission {
+  id          String       @id @default(uuid())
+  resource    VarChar(100)
+  action      VarChar(100)
+  description String?
+  createdAt   DateTime     @default(now())
+
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+}
+
+model UserRole {
+  id        String   @id @default(uuid())
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+}
+
+model RolePermission {
+  id           String   @id @default(uuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+// ─── Users & Employees ────────────────────────────────────────────────────────
+
+model User {
+  id                String     @id @default(uuid())
+  username          VarChar(50)  @unique
+  email             VarChar(200)? @unique
+  phone             VarChar(20)?  @unique
+  passwordHash      String
+  status            UserStatus @default(ACTIVE)
+  emailVerified     Boolean    @default(false)
+  phoneVerified     Boolean    @default(false)
+  lastLoginAt       DateTime?
+  passwordChangedAt DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @default(now())
+  deletedAt         DateTime?
+
+  employee               Employee?
+  userRoles              UserRole[]
+  sessions               UserSession[]
+  loginAttempts          LoginAttempt[]
+  securityEvents         SecurityEvent[]
+  blockedUser            BlockedUser?
+  devices                UserDevice[]
+  privacyConsents        PrivacyConsent[]
+  privacyRequests        PrivacyRequest[]
+  dataExportJobs         DataExportJob[]
+  correctionRequests     DataCorrectionRequest[]
+  accountDeletionRequest AccountDeletionRequest?
+  uploadedDocs           EmployeeDocument[]       @relation("DocumentUploadedBy")
+  verifiedDocs           EmployeeDocument[]       @relation("DocumentVerifiedBy")
+  orgHistories           EmployeeOrgHistory[]
+  initiatedImports       EmployeeImportJob[]      @relation("ImportInitiatedBy")
+  confirmedImports       EmployeeImportJob[]      @relation("ImportConfirmedBy")
+  exportJobs             EmployeeExportJob[]
+
+  // Chat relations
+  createdConversations     ChatConversation[]      @relation("ConversationCreatedBy")
+  chatMemberships          ChatConversationMember[] @relation("ChatMemberUser")
+  sentMessages             ChatMessage[]           @relation("ChatMessageSender")
+  chatAttachments          ChatMessageAttachment[] @relation("ChatAttachmentUploader")
+  chatReactions            ChatMessageReaction[]   @relation("ChatReactionUser")
+  chatStars                ChatMessageStar[]       @relation("ChatStarUser")
+  chatPins                 ChatPinnedMessage[]     @relation("ChatPinnedBy")
+  chatReadStates           ChatMessageReadState[]  @relation("ChatReadStateUser")
+  chatMentions             ChatMessageMention[]    @relation("ChatMentionedUser")
+  chatDrafts               ChatDraft[]             @relation("ChatDraftUser")
+  scheduledMessages        ChatScheduledMessage[]  @relation("ChatScheduledSender")
+  closedPolls              ChatPoll[]              @relation("ChatPollClosedBy")
+  pollVotes                ChatPollVote[]          @relation("ChatPollVoter")
+  chatReports              ChatReport[]            @relation("ChatReportedBy")
+  resolvedReports          ChatReport[]            @relation("ChatReportResolvedBy")
+  callsMade                CallRecord[]            @relation("CallCaller")
+  callParticipations       CallParticipant[]       @relation("CallParticipantUser")
+
+  // Kaizen relations
+  submittedKaizens       Kaizen[]                @relation("KaizenSubmittedBy")
+  kaizenAttachments      KaizenAttachment[]      @relation("KaizenAttachmentUploader")
+  kaizenComments         KaizenComment[]         @relation("KaizenCommentAuthor")
+  kaizenReviews          KaizenReview[]          @relation("KaizenReviewer")
+  kaizenImplementations  KaizenImplementation[]  @relation("KaizenImplOwner")
+  kaizenResults          KaizenResult[]          @relation("KaizenResultRecorder")
+  kaizenActivities       KaizenActivity[]        @relation("KaizenActivityActor")
+
+  // Task & Project relations
+  managedProjects        Project[]               @relation("ProjectManager")
+  createdProjects        Project[]               @relation("ProjectCreatedBy")
+  projectMemberships     ProjectMember[]         @relation("ProjectMemberUser")
+  addedProjectMembers    ProjectMember[]         @relation("ProjectMemberAddedBy")
+  projectAttachments     ProjectAttachment[]     @relation("ProjectAttachmentUploader")
+  projectActivities      ProjectActivity[]       @relation("ProjectActivityActor")
+  createdTasks           Task[]                  @relation("TaskCreatedBy")
+  taskAssignments        TaskAssignee[]          @relation("TaskAssigneeUser")
+  assignedTasks          TaskAssignee[]          @relation("TaskAssignedBy")
+  checklistsCompleted    TaskChecklist[]         @relation("ChecklistCompletedBy")
+  checklistsAssigned     TaskChecklist[]         @relation("ChecklistAssignedTo")
+  taskComments           TaskComment[]           @relation("TaskCommentAuthor")
+  commentAttachments     TaskCommentAttachment[] @relation("CommentAttachmentUploader")
+  taskAttachments        TaskAttachment[]        @relation("TaskAttachmentUploader")
+  taskActivities         TaskActivity[]          @relation("TaskActivityActor")
+  taskDependenciesCreated TaskDependency[]       @relation("TaskDepCreatedBy")
+  watchedTasks           TaskWatcher[]           @relation("TaskWatcherUser")
+  taskReminders          TaskReminder[]          @relation("TaskReminderUser")
+}
+
+model Employee {
+  id                   String         @id @default(uuid())
+  userId               String?        @unique
+  employeeCode         VarChar(50)    @unique
+  companyId            String
+  locationId           String?
+  divisionId           String?
+  departmentId         String?
+  sectionId            String?
+  designationId        String?
+  jobGradeId           String?
+  employmentTypeId     String?
+  employmentCategoryId String?
+  employeeStatusId     String?
+  managerId            String?
+  hodId                String?
+  subHodId             String?
+  firstName            VarChar(100)
+  lastName             VarChar(100)
+  displayName          VarChar(200)?
+  gender               Gender?
+  maritalStatus        VarChar(20)?
+  dateOfBirth          Date?
+  joiningDate          Date
+  exitDate             Date?
+  officialEmail        VarChar(200)?
+  personalEmail        VarChar(200)?
+  mobile               VarChar(20)?
+  profilePicUrl        String?
+  status               EmployeeStatus @default(ACTIVE)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @default(now())
+  deletedAt            DateTime?
+
+  user               User?               @relation(fields: [userId], references: [id])
+  company            Company             @relation(fields: [companyId], references: [id])
+  location           Location?           @relation(fields: [locationId], references: [id])
+  division           Division?           @relation(fields: [divisionId], references: [id])
+  department         Department?         @relation(fields: [departmentId], references: [id])
+  section            Section?            @relation(fields: [sectionId], references: [id])
+  designation        Designation?        @relation(fields: [designationId], references: [id])
+  jobGrade           JobGrade?           @relation(fields: [jobGradeId], references: [id])
+  employmentType     EmploymentType?     @relation(fields: [employmentTypeId], references: [id])
+  employmentCategory EmploymentCategory? @relation(fields: [employmentCategoryId], references: [id])
+  manager            Employee?           @relation("ManagerRelation", fields: [managerId], references: [id])
+  directReports      Employee[]          @relation("ManagerRelation")
+  emergencyContacts  EmergencyContact[]
+  bankDetail         EmployeeBankDetail?
+  documents          EmployeeDocument[]
+  customFieldValues  EmployeeCustomFieldValue[]
+  orgHistories       EmployeeOrgHistory[]
+  importRows         EmployeeImportRow[]
+
+  @@index([employeeCode])
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([sectionId])
+  @@index([designationId])
+  @@index([managerId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model EmergencyContact {
+  id             String      @id @default(uuid())
+  employeeId     String
+  name           VarChar(200)
+  relationship   VarChar(100)?
+  phone          VarChar(20)
+  alternatePhone VarChar(20)?
+  address        String?
+  priority       Int         @default(1)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+}
+
+model EmployeeBankDetail {
+  id            String      @id @default(uuid())
+  employeeId    String      @unique
+  accountName   VarChar(200)
+  accountNumber VarChar(50)
+  ifsc          VarChar(20)
+  bankName      VarChar(200)?
+  branch        VarChar(200)?
+  isVerified    Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model EmployeeOrgHistory {
+  id            String    @id @default(uuid())
+  employeeId    String
+  changeType    VarChar(50)
+  oldValue      String?
+  newValue      String?
+  changedById   String?
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  createdAt     DateTime  @default(now())
+
+  employee  Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  changedBy User?    @relation(fields: [changedById], references: [id])
+
+  @@index([employeeId])
+  @@index([changeType])
+}
+
+// ─── Documents ────────────────────────────────────────────────────────────────
+
+model DocumentCategory {
+  id                   String      @id @default(uuid())
+  code                 VarChar(20) @unique
+  name                 VarChar(200)
+  description          String?
+  isRequired           Boolean     @default(false)
+  allowedMimeTypes     String?
+  maxFileSizeMb        Int         @default(10)
+  issueDateRequired    Boolean     @default(false)
+  expiryDateRequired   Boolean     @default(false)
+  verificationRequired Boolean     @default(false)
+  isActive             Boolean     @default(true)
+  displayOrder         Int         @default(0)
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @default(now())
+
+  documents    EmployeeDocument[]
+  requirements DocumentRequirement[]
+}
+
+model DocumentRequirement {
+  id                 String      @id @default(uuid())
+  documentCategoryId String
+  scopeType          VarChar(50)
+  scopeId            String?
+  isRequired         Boolean     @default(true)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @default(now())
+
+  category DocumentCategory @relation(fields: [documentCategoryId], references: [id])
+
+  @@index([documentCategoryId])
+  @@index([scopeType, scopeId])
+}
+
+model EmployeeDocument {
+  id                 String      @id @default(uuid())
+  employeeId         String
+  categoryId         String
+  filename           VarChar(500)
+  mimeType           VarChar(100)
+  sizeBytes          BigInt?
+  storageKey         String
+  documentNumber     VarChar(100)?
+  issueDate          Date?
+  expiryDate         Date?
+  verificationStatus VarChar(20) @default("PENDING")
+  verifiedById       String?
+  verifiedAt         DateTime?
+  verificationNote   String?
+  uploadedById       String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @default(now())
+  deletedAt          DateTime?
+
+  employee   Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  category   DocumentCategory @relation(fields: [categoryId], references: [id])
+  verifiedBy User?            @relation("DocumentVerifiedBy", fields: [verifiedById], references: [id])
+  uploadedBy User?            @relation("DocumentUploadedBy", fields: [uploadedById], references: [id])
+
+  @@index([employeeId])
+  @@index([categoryId])
+}
+
+// ─── Custom Fields ────────────────────────────────────────────────────────────
+
+model EmployeeCustomField {
+  id             String      @id @default(uuid())
+  code           VarChar(50) @unique
+  name           VarChar(200)
+  fieldType      VarChar(20)
+  isRequired     Boolean     @default(false)
+  defaultValue   String?
+  options        Json?
+  validationRule String?
+  visibleTo      String?
+  editableBy     String?
+  displayOrder   Int         @default(0)
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @default(now())
+
+  values EmployeeCustomFieldValue[]
+}
+
+model EmployeeCustomFieldValue {
+  id         String   @id @default(uuid())
+  employeeId String
+  fieldId    String
+  value      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+
+  employee Employee            @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  field    EmployeeCustomField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, fieldId])
+}
+
+// ─── Import / Export ──────────────────────────────────────────────────────────
+
+model ImportTemplate {
+  id                String      @id @default(uuid())
+  name              VarChar(200)
+  description       String?
+  templateType      VarChar(50)
+  duplicateStrategy VarChar(20) @default("SKIP")
+  isActive          Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @default(now())
+
+  mappings   ImportTemplateMapping[]
+  importJobs EmployeeImportJob[]
+}
+
+model ImportTemplateMapping {
+  id             String      @id @default(uuid())
+  templateId     String
+  sourceColumn   VarChar(200)
+  targetField    VarChar(100)
+  isRequired     Boolean     @default(false)
+  defaultValue   String?
+  transformation String?
+  displayOrder   Int         @default(0)
+
+  template ImportTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+}
+
+model EmployeeImportJob {
+  id                String    @id @default(uuid())
+  templateId        String?
+  initiatedById     String
+  status            VarChar(20) @default("PENDING")
+  filename          VarChar(500)?
+  storageKey        String?
+  totalRows         Int?
+  validRows         Int?
+  errorRows         Int?
+  createdRows       Int?
+  updatedRows       Int?
+  skippedRows       Int?
+  duplicateStrategy VarChar(20) @default("SKIP")
+  confirmedById     String?
+  confirmedAt       DateTime?
+  completedAt       DateTime?
+  failedAt          DateTime?
+  errorSummary      String?
+  resultStorageKey  String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @default(now())
+
+  template    ImportTemplate?    @relation(fields: [templateId], references: [id])
+  initiatedBy User               @relation("ImportInitiatedBy", fields: [initiatedById], references: [id])
+  confirmedBy User?              @relation("ImportConfirmedBy", fields: [confirmedById], references: [id])
+  rows        EmployeeImportRow[]
+
+  @@index([status])
+  @@index([initiatedById])
+}
+
+model EmployeeImportRow {
+  id               String    @id @default(uuid())
+  jobId            String
+  rowNumber        Int
+  status           VarChar(20) @default("PENDING")
+  rawData          Json?
+  mappedData       Json?
+  validationErrors Json?
+  action           VarChar(20)?
+  employeeId       String?
+  createdAt        DateTime  @default(now())
+
+  job      EmployeeImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  employee Employee?         @relation(fields: [employeeId], references: [id])
+
+  @@index([jobId])
+  @@index([status])
+}
+
+model EmployeeExportJob {
+  id            String      @id @default(uuid())
+  requestedById String
+  status        VarChar(20) @default("PENDING")
+  filters       Json?
+  fields        Json?
+  totalRows     Int?
+  storageKey    String?
+  expiresAt     DateTime?
+  completedAt   DateTime?
+  failedAt      DateTime?
+  errorMsg      String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now())
+
+  requestedBy User @relation(fields: [requestedById], references: [id])
+
+  @@index([requestedById])
+  @@index([status])
+}
+
+// ─── Security ─────────────────────────────────────────────────────────────────
+
+model UserSession {
+  id               String        @id @default(uuid())
+  userId           String
+  sessionTokenHash String        @unique
+  refreshTokenHash String?       @unique
+  ipAddress        VarChar(45)?
+  userAgent        String?
+  deviceId         String?
+  appVersion       VarChar(50)?
+  status           SessionStatus @default(ACTIVE)
+  createdAt        DateTime      @default(now())
+  lastActivityAt   DateTime      @default(now())
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  logoutAt         DateTime?
+
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device UserDevice? @relation(fields: [deviceId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+model LoginAttempt {
+  id                String      @id @default(uuid())
+  userId            String?
+  usernameAttempted VarChar(200)
+  ipAddress         VarChar(45)?
+  userAgent         String?
+  deviceId          String?
+  success           Boolean
+  failureReason     VarChar(200)?
+  createdAt         DateTime    @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([ipAddress])
+  @@index([createdAt])
+}
+
+model SecurityEvent {
+  id        String                @id @default(uuid())
+  userId    String?
+  eventType SecurityEventType
+  ipAddress VarChar(45)?
+  deviceId  String?
+  metadata  Json?
+  severity  SecurityEventSeverity @default(LOW)
+  createdAt DateTime              @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model BlockedIp {
+  id          String      @id @default(uuid())
+  ipAddress   VarChar(45) @unique
+  reason      String?
+  blockedById String?
+  isPermanent Boolean     @default(false)
+  blockedAt   DateTime    @default(now())
+  expiresAt   DateTime?
+}
+
+model BlockedUser {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  reason      String?
+  blockedById String?
+  isPermanent Boolean  @default(false)
+  blockedAt   DateTime @default(now())
+  expiresAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserDevice {
+  id          String      @id @default(uuid())
+  userId      String
+  deviceToken String      @unique
+  platform    VarChar(20)
+  model       VarChar(100)?
+  osVersion   VarChar(50)?
+  appVersion  VarChar(50)?
+  pushToken   String?
+  isBlocked   Boolean     @default(false)
+  firstSeenAt DateTime    @default(now())
+  lastSeenAt  DateTime    @default(now())
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions UserSession[]
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id         String      @id @default(uuid())
+  userId     String?
+  action     VarChar(100)
+  resource   VarChar(100)
+  resourceId String?
+  metadata   Json?
+  ipAddress  VarChar(45)?
+  createdAt  DateTime    @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ─── Privacy ──────────────────────────────────────────────────────────────────
+
+model PrivacyPolicy {
+  id          String       @id @default(uuid())
+  policyType  PolicyType
+  version     VarChar(20)
+  title       VarChar(200)
+  content     String
+  status      PolicyStatus @default(DRAFT)
+  effectiveAt DateTime?
+  publishedAt DateTime?
+  createdById String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now())
+
+  consents PrivacyConsent[]
+
+  @@unique([policyType, version])
+  @@index([policyType, status])
+}
+
+model PrivacyConsent {
+  id            String        @id @default(uuid())
+  userId        String
+  policyId      String
+  policyVersion VarChar(20)
+  status        ConsentStatus @default(ACCEPTED)
+  acceptedAt    DateTime      @default(now())
+  revokedAt     DateTime?
+  ipAddress     VarChar(45)?
+  userAgent     String?
+  deviceId      String?
+
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policy PrivacyPolicy @relation(fields: [policyId], references: [id])
+
+  @@index([userId])
+  @@index([policyId])
+}
+
+model PrivacyRequest {
+  id           String               @id @default(uuid())
+  userId       String
+  requestType  PrivacyRequestType
+  status       PrivacyRequestStatus @default(PENDING)
+  description  String?
+  reviewedById String?
+  reviewNote   String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @default(now())
+  completedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model DataExportJob {
+  id          String           @id @default(uuid())
+  userId      String
+  status      DataExportStatus @default(PENDING)
+  storageKey  String?
+  downloadUrl String?
+  expiresAt   DateTime?
+  requestedAt DateTime         @default(now())
+  completedAt DateTime?
+  failedAt    DateTime?
+  errorMsg    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model DataCorrectionRequest {
+  id             String               @id @default(uuid())
+  userId         String
+  field          VarChar(100)
+  requestedValue String
+  reason         String?
+  status         PrivacyRequestStatus @default(PENDING)
+  reviewedById   String?
+  reviewNote     String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @default(now())
+  completedAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AccountDeletionRequest {
+  id           String                @id @default(uuid())
+  userId       String                @unique
+  status       AccountDeletionStatus @default(DELETION_REQUESTED)
+  requestedAt  DateTime              @default(now())
+  verifiedAt   DateTime?
+  scheduledAt  DateTime?
+  completedAt  DateTime?
+  cancelledAt  DateTime?
+  reason       String?
+  reviewedById String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RetentionPolicy {
+  id                    String      @id @default(uuid())
+  dataCategory          VarChar(100) @unique
+  retentionDays         Int
+  retentionBasis        String?
+  deletionBehavior      VarChar(50)
+  anonymizationBehavior VarChar(50)?
+  isActive              Boolean     @default(true)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @default(now())
+}
+
+// ─── Tasks & Projects ─────────────────────────────────────────────────────────
+
+model Project {
+  id             String      @id @default(uuid())
+  name           VarChar(200)
+  code           VarChar(50) @unique
+  description    String?
+  companyId      String
+  departmentId   String?
+  managerId      String
+  status         VarChar(30) @default("PLANNING")
+  priority       VarChar(20) @default("MEDIUM")
+  startDate      Date?
+  endDate        Date?
+  progress       Int         @default(0)
+  isArchived     Boolean     @default(false)
+  archivedAt     DateTime?
+  archivedById   String?
+  completedAt    DateTime?
+  createdById    String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @default(now())
+
+  company      Company     @relation(fields: [companyId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id])
+  manager      User        @relation("ProjectManager", fields: [managerId], references: [id])
+  createdBy    User        @relation("ProjectCreatedBy", fields: [createdById], references: [id])
+
+  members      ProjectMember[]
+  tasks        Task[]
+  attachments  ProjectAttachment[]
+  activities   ProjectActivity[]
+  kaizens      Kaizen[]
+
+  @@index([companyId])
+  @@index([managerId])
+  @@index([status])
+}
+
+model ProjectMember {
+  id        String   @id @default(uuid())
+  projectId String
+  userId    String
+  role      VarChar(30) @default("CONTRIBUTOR")
+  addedById String
+  addedAt   DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation("ProjectMemberUser", fields: [userId], references: [id])
+  addedBy User    @relation("ProjectMemberAddedBy", fields: [addedById], references: [id])
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+}
+
+model ProjectAttachment {
+  id           String      @id @default(uuid())
+  projectId    String
+  filename     VarChar(500)
+  storageKey   String
+  mimeType     VarChar(100)?
+  size         Int?
+  uploadedById String
+  uploadedAt   DateTime    @default(now())
+
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy User    @relation("ProjectAttachmentUploader", fields: [uploadedById], references: [id])
+
+  @@index([projectId])
+}
+
+model ProjectActivity {
+  id         String   @id @default(uuid())
+  projectId  String
+  actorId    String
+  event      VarChar(100)
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actor   User    @relation("ProjectActivityActor", fields: [actorId], references: [id])
+
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+model Task {
+  id             String      @id @default(uuid())
+  taskNumber     VarChar(30) @unique
+  title          VarChar(500)
+  description    String?
+  taskType       VarChar(50) @default("ASSIGNED")
+  status         VarChar(30) @default("DRAFT")
+  priority       VarChar(20) @default("MEDIUM")
+  progress       Int         @default(0)
+  projectId      String?
+  parentId       String?
+  departmentId   String?
+  companyId      String?
+  startDate      Date?
+  dueDate        Date?
+  completedAt    DateTime?
+  requiresApproval Boolean   @default(false)
+  isPersonal     Boolean     @default(false)
+  isRecurring    Boolean     @default(false)
+  recurringRule  String?
+  isArchived     Boolean     @default(false)
+  archivedAt     DateTime?
+  archivedById   String?
+  createdById    String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @default(now())
+
+  project      Project?    @relation(fields: [projectId], references: [id])
+  parent       Task?       @relation("SubtaskRelation", fields: [parentId], references: [id])
+  subtasks     Task[]      @relation("SubtaskRelation")
+  department   Department? @relation(fields: [departmentId], references: [id])
+  createdBy    User        @relation("TaskCreatedBy", fields: [createdById], references: [id])
+
+  assignees    TaskAssignee[]
+  checklists   TaskChecklist[]
+  comments     TaskComment[]
+  attachments  TaskAttachment[]
+  activities   TaskActivity[]
+  dependencies TaskDependency[]  @relation("DependentTask")
+  blocks       TaskDependency[]  @relation("BlockedByTask")
+  watchers     TaskWatcher[]
+  reminders    TaskReminder[]
+
+  @@index([projectId])
+  @@index([parentId])
+  @@index([status])
+  @@index([createdById])
+  @@index([dueDate])
+}
+
+model TaskAssignee {
+  id           String   @id @default(uuid())
+  taskId       String
+  userId       String
+  assignedById String
+  assignedAt   DateTime @default(now())
+  acknowledgedAt DateTime?
+
+  task       Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user       User @relation("TaskAssigneeUser", fields: [userId], references: [id])
+  assignedBy User @relation("TaskAssignedBy", fields: [assignedById], references: [id])
+
+  @@unique([taskId, userId])
+  @@index([taskId])
+  @@index([userId])
+}
+
+model TaskChecklist {
+  id          String    @id @default(uuid())
+  taskId      String
+  title       VarChar(500)
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+  completedById String?
+  assignedToId  String?
+  dueDate     Date?
+  displayOrder Int      @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+
+  task        Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  completedBy User? @relation("ChecklistCompletedBy", fields: [completedById], references: [id])
+  assignedTo  User? @relation("ChecklistAssignedTo", fields: [assignedToId], references: [id])
+
+  @@index([taskId])
+}
+
+model TaskComment {
+  id        String   @id @default(uuid())
+  taskId    String
+  authorId  String
+  body      String
+  isEdited  Boolean  @default(false)
+  editedAt  DateTime?
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author User @relation("TaskCommentAuthor", fields: [authorId], references: [id])
+
+  attachments TaskCommentAttachment[]
+
+  @@index([taskId])
+  @@index([authorId])
+}
+
+model TaskCommentAttachment {
+  id           String      @id @default(uuid())
+  commentId    String
+  filename     VarChar(500)
+  storageKey   String
+  mimeType     VarChar(100)?
+  size         Int?
+  uploadedById String
+  uploadedAt   DateTime    @default(now())
+
+  comment    TaskComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  uploadedBy User        @relation("CommentAttachmentUploader", fields: [uploadedById], references: [id])
+
+  @@index([commentId])
+}
+
+model TaskAttachment {
+  id           String      @id @default(uuid())
+  taskId       String
+  filename     VarChar(500)
+  storageKey   String
+  mimeType     VarChar(100)?
+  size         Int?
+  version      Int         @default(1)
+  uploadedById String
+  uploadedAt   DateTime    @default(now())
+
+  task       Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploadedBy User @relation("TaskAttachmentUploader", fields: [uploadedById], references: [id])
+
+  @@index([taskId])
+}
+
+model TaskActivity {
+  id        String   @id @default(uuid())
+  taskId    String
+  actorId   String
+  event     VarChar(100)
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  task  Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  actor User @relation("TaskActivityActor", fields: [actorId], references: [id])
+
+  @@index([taskId])
+  @@index([createdAt])
+}
+
+model TaskDependency {
+  id              String      @id @default(uuid())
+  taskId          String
+  dependsOnTaskId String
+  dependencyType  VarChar(30) @default("BLOCKED_BY")
+  createdById     String
+  createdAt       DateTime    @default(now())
+
+  task        Task @relation("DependentTask", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOn   Task @relation("BlockedByTask", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+  createdBy   User @relation("TaskDepCreatedBy", fields: [createdById], references: [id])
+
+  @@unique([taskId, dependsOnTaskId])
+  @@index([taskId])
+}
+
+model TaskWatcher {
+  id        String   @id @default(uuid())
+  taskId    String
+  userId    String
+  addedAt   DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation("TaskWatcherUser", fields: [userId], references: [id])
+
+  @@unique([taskId, userId])
+  @@index([taskId])
+}
+
+model TaskReminder {
+  id          String    @id @default(uuid())
+  taskId      String
+  userId      String
+  remindAt    DateTime
+  isSent      Boolean   @default(false)
+  sentAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation("TaskReminderUser", fields: [userId], references: [id])
+
+  @@index([taskId])
+  @@index([remindAt, isSent])
+}
+
+// ─── Kaizen ───────────────────────────────────────────────────────────────────
+
+model KaizenCategory {
+  id           String   @id @default(uuid())
+  code         VarChar(50) @unique
+  name         VarChar(200)
+  description  String?
+  isActive     Boolean  @default(true)
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
+
+  kaizens KaizenCategoryLink[]
+}
+
+model Kaizen {
+  id                   String      @id @default(uuid())
+  kaizenNumber         VarChar(30) @unique
+  title                VarChar(500)
+  description          String
+  benefitDetails       String
+  implementationSuggestion String
+  additionalComments   String?
+  signature            VarChar(200)
+  declarationAccepted  Boolean     @default(false)
+  status               VarChar(30) @default("DRAFT")
+  submittedById        String
+  departmentId         String?
+  sectionId            String?
+  companyId            String?
+  projectId            String?
+  snapshotName         VarChar(200)?
+  snapshotDepartment   VarChar(200)?
+  snapshotDesignation  VarChar(200)?
+  snapshotContact      VarChar(50)?
+  submittedAt          DateTime?
+  reviewedAt           DateTime?
+  approvedAt           DateTime?
+  implementedAt        DateTime?
+  closedAt             DateTime?
+  isArchived           Boolean     @default(false)
+  archivedAt           DateTime?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @default(now())
+
+  submittedBy    User        @relation("KaizenSubmittedBy", fields: [submittedById], references: [id])
+  department     Department? @relation(fields: [departmentId], references: [id])
+  project        Project?    @relation(fields: [projectId], references: [id])
+
+  categories     KaizenCategoryLink[]
+  benefits       KaizenBenefitLink[]
+  participants   KaizenParticipant[]
+  attachments    KaizenAttachment[]
+  comments       KaizenComment[]
+  reviews        KaizenReview[]
+  implementation KaizenImplementation?
+  results        KaizenResult[]
+  activities     KaizenActivity[]
+
+  @@index([submittedById])
+  @@index([departmentId])
+  @@index([status])
+  @@index([kaizenNumber])
+}
+
+model KaizenCategoryLink {
+  id         String @id @default(uuid())
+  kaizenId   String
+  categoryId String
+
+  kaizen   Kaizen         @relation(fields: [kaizenId], references: [id], onDelete: Cascade)
+  category KaizenCategory @relation(fields: [categoryId], references: [id])
+
+  @@unique([kaizenId, categoryId])
+  @@index([kaizenId])
+}
+
+model KaizenBenefitLink {
+  id       String      @id @default(uuid())
+  kaizenId String
+  benefit  VarChar(100)
+
+  kaizen Kaizen @relation(fields: [kaizenId], references: [id], onDelete: Cascade)
+
+  @@unique([kaizenId, benefit])
+  @@index([kaizenId])
+}
+
+model KaizenParticipant {
+  id                   String      @id @default(uuid())
+  kaizenId             String
+  name                 VarChar(200)
+  departmentOrCompany  VarChar(200)?
+  createdAt            DateTime    @default(now())
+
+  kaizen Kaizen @relation(fields: [kaizenId], references: [id], onDelete: Cascade)
+
+  @@index([kaizenId])
+}
+
+model KaizenAttachment {
+  id           String      @id @default(uuid())
+  kaizenId     String
+  filename     VarChar(500)
+  storageKey   String
+  mimeType     VarChar(100)?
+  size         Int?
+  version      Int         @default(1)
+  uploadedById String
+  uploadedAt   DateTime    @default(now())
+
+  kaizen     Kaizen @relation(fields: [kaizenId], references: [id], onDelete: Cascade)
+  uploadedBy User   @relation("KaizenAttachmentUploader", fields: [uploadedById], references: [id])
+
+  @@index([kaizenId])
+}
+
+model KaizenComment {
+  id        String    @id @default(uuid())
+  kaizenId  String
+  authorId  String
+  body      String
+  isEdited  Boolean   @default(false)
+  editedAt  DateTime?
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+
+  kaizen Kaizen @relation(fields: [kaizenId], references: [id], onDelete: Cascade)
+  author User   @relation("KaizenCommentAuthor", fields: [authorId], references: [id])
+
+  @@index([kaizenId])
+}
+
+model KaizenReview {
+  id               String    @id @default(uuid())
+  kaizenId         String
+  reviewerId       String
+  reviewerRole     VarChar(30)
+  feasibilityScore Int?
+  impactScore      Int?
+  safetyScore      Int?
+  estimatedSavings String?
+  comments         String?
+  decision         VarChar(30)
+  reviewedAt       DateTime  @default(now())
+
+  kaizen   Kaizen @relation(fields: [kaizenId], references: [id], onDelete: Cascade)
+  reviewer User   @relation("KaizenReviewer", fields: [reviewerId], references: [id])
+
+  @@index([kaizenId])
+  @@index([reviewerId])
+}
+
+model KaizenImplementation {
+  id                   String    @id @default(uuid())
+  kaizenId             String    @unique
+  ownerId              String?
+  responsibleDeptId    String?
+  startDate            Date?
+  targetCompletionDate Date?
+  actualCompletionDate Date?
+  requiredBudget       String?
+  actualCost           String?
+  requiredResources    String?
+  status               VarChar(30) @default("PENDING")
+  notes                String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @default(now())
+
+  kaizen Kaizen @relation(fields: [kaizenId], references: [id], onDelete: Cascade)
+  owner  User?  @relation("KaizenImplOwner", fields: [ownerId], references: [id])
+
+  @@index([kaizenId])
+}
+
+model KaizenResult {
+  id          String      @id @default(uuid())
+  kaizenId    String
+  metric      VarChar(100)
+  beforeValue String?
+  afterValue  String?
+  improvement String?
+  unit        VarChar(50)?
+  recordedById String
+  recordedAt  DateTime    @default(now())
+
+  kaizen     Kaizen @relation(fields: [kaizenId], references: [id], onDelete: Cascade)
+  recordedBy User   @relation("KaizenResultRecorder", fields: [recordedById], references: [id])
+
+  @@index([kaizenId])
+}
+
+model KaizenActivity {
+  id        String   @id @default(uuid())
+  kaizenId  String
+  actorId   String
+  event     VarChar(100)
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  kaizen Kaizen @relation(fields: [kaizenId], references: [id], onDelete: Cascade)
+  actor  User   @relation("KaizenActivityActor", fields: [actorId], references: [id])
+
+  @@index([kaizenId])
+  @@index([createdAt])
+}
+
+// ─── Chat ─────────────────────────────────────────────────────────────────────
+
+model ChatConversation {
+  id             String      @id @default(uuid())
+  type           VarChar(30)
+  name           VarChar(200)?
+  description    String?
+  imageKey       String?
+  createdById    String
+  companyId      String?
+  departmentId   String?
+  sectionId      String?
+  projectId      String?
+  taskId         String?
+  classification VarChar(20) @default("NORMAL")
+  isReadOnly     Boolean     @default(false)
+  isArchived     Boolean     @default(false)
+  archivedAt     DateTime?
+  deletedAt      DateTime?
+  lastMessageAt  DateTime?
+  lastMessageId  String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @default(now())
+
+  createdBy User @relation("ConversationCreatedBy", fields: [createdById], references: [id])
+
+  members          ChatConversationMember[]
+  messages         ChatMessage[]
+  pinnedMessages   ChatPinnedMessage[]
+  groupSettings    ChatGroupSettings?
+  drafts           ChatDraft[]
+  scheduledMessages ChatScheduledMessage[]
+  polls            ChatPoll[]
+  reports          ChatReport[]
+
+  @@index([type])
+  @@index([createdById])
+  @@index([projectId])
+  @@index([taskId])
+  @@index([departmentId])
+  @@index([lastMessageAt])
+}
+
+model ChatConversationMember {
+  id                 String    @id @default(uuid())
+  conversationId     String
+  userId             String
+  role               VarChar(20) @default("MEMBER")
+  joinedAt           DateTime  @default(now())
+  leftAt             DateTime?
+  lastReadMessageId  String?
+  lastReadAt         DateTime?
+  mutedUntil         DateTime?
+  isArchived         Boolean   @default(false)
+  archivedAt         DateTime?
+  notifyMode         VarChar(20) @default("ALL")
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User             @relation("ChatMemberUser", fields: [userId], references: [id])
+
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+}
+
+model ChatGroupSettings {
+  id                    String  @id @default(uuid())
+  conversationId        String  @unique
+  allowSendMessages     Boolean @default(true)
+  allowSendMedia        Boolean @default(true)
+  allowSendDocuments    Boolean @default(true)
+  allowSendPolls        Boolean @default(true)
+  allowAddMembers       Boolean @default(false)
+  allowRemoveMembers    Boolean @default(false)
+  allowEditGroup        Boolean @default(false)
+  allowPinMessages      Boolean @default(false)
+  allowDeleteMessages   Boolean @default(false)
+  maxMembers            Int     @default(500)
+  disappearingTimer     Int?
+  forwardingRestricted  Boolean @default(false)
+  downloadRestricted    Boolean @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @default(now())
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model ChatMessage {
+  id                String      @id @default(uuid())
+  conversationId    String
+  senderId          String
+  clientMessageId   VarChar(100)?
+  type              VarChar(20) @default("TEXT")
+  text              String?
+  replyToId         String?
+  forwardedFromId   String?
+  classification    VarChar(20) @default("NORMAL")
+  metadata          Json?
+  isEdited          Boolean     @default(false)
+  editedAt          DateTime?
+  isDeletedForAll   Boolean     @default(false)
+  deletedAt         DateTime?
+  expiresAt         DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @default(now())
+
+  conversation    ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender          User             @relation("ChatMessageSender", fields: [senderId], references: [id])
+  replyTo         ChatMessage?     @relation("MessageReply", fields: [replyToId], references: [id])
+  replies         ChatMessage[]    @relation("MessageReply")
+  forwardedFrom   ChatMessage?     @relation("MessageForward", fields: [forwardedFromId], references: [id])
+  forwards        ChatMessage[]    @relation("MessageForward")
+
+  attachments     ChatMessageAttachment[]
+  reactions       ChatMessageReaction[]
+  stars           ChatMessageStar[]
+  pinnedIn        ChatPinnedMessage[]
+  readStates      ChatMessageReadState[]
+  mentions        ChatMessageMention[]
+  poll            ChatPoll?
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@index([replyToId])
+  @@index([clientMessageId])
+}
+
+model ChatMessageAttachment {
+  id             String      @id @default(uuid())
+  messageId      String
+  storageKey     String
+  thumbnailKey   String?
+  filename       VarChar(500)
+  mimeType       VarChar(100)?
+  size           Int?
+  duration       Int?
+  width          Int?
+  height         Int?
+  waveformData   Json?
+  uploadedById   String
+  createdAt      DateTime    @default(now())
+
+  message    ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  uploadedBy User        @relation("ChatAttachmentUploader", fields: [uploadedById], references: [id])
+
+  @@index([messageId])
+}
+
+model ChatMessageReaction {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  emoji     VarChar(10)
+  createdAt DateTime @default(now())
+
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User        @relation("ChatReactionUser", fields: [userId], references: [id])
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+}
+
+model ChatMessageStar {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  starredAt DateTime @default(now())
+
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User        @relation("ChatStarUser", fields: [userId], references: [id])
+
+  @@unique([messageId, userId])
+  @@index([userId])
+}
+
+model ChatPinnedMessage {
+  id             String   @id @default(uuid())
+  conversationId String
+  messageId      String
+  pinnedById     String
+  pinnedAt       DateTime @default(now())
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  message      ChatMessage      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  pinnedBy     User             @relation("ChatPinnedBy", fields: [pinnedById], references: [id])
+
+  @@unique([conversationId, messageId])
+  @@index([conversationId])
+}
+
+model ChatMessageReadState {
+  id          String   @id @default(uuid())
+  messageId   String
+  userId      String
+  deliveredAt DateTime?
+  readAt      DateTime?
+
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User        @relation("ChatReadStateUser", fields: [userId], references: [id])
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+}
+
+model ChatMessageMention {
+  id           String @id @default(uuid())
+  messageId    String
+  mentionedId  String
+
+  message   ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  mentioned User        @relation("ChatMentionedUser", fields: [mentionedId], references: [id])
+
+  @@index([messageId])
+  @@index([mentionedId])
+}
+
+model ChatDraft {
+  id             String   @id @default(uuid())
+  conversationId String
+  userId         String
+  text           String?
+  replyToId      String?
+  metadata       Json?
+  updatedAt      DateTime @default(now())
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User             @relation("ChatDraftUser", fields: [userId], references: [id])
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model ChatScheduledMessage {
+  id             String    @id @default(uuid())
+  conversationId String
+  senderId       String
+  type           VarChar(20) @default("TEXT")
+  text           String?
+  metadata       Json?
+  scheduledAt    DateTime
+  sentAt         DateTime?
+  cancelledAt    DateTime?
+  jobId          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now())
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User             @relation("ChatScheduledSender", fields: [senderId], references: [id])
+
+  @@index([conversationId])
+  @@index([scheduledAt, sentAt])
+}
+
+model ChatPoll {
+  id             String    @id @default(uuid())
+  conversationId String
+  messageId      String    @unique
+  question       String
+  isMultiChoice  Boolean   @default(false)
+  isAnonymous    Boolean   @default(false)
+  closedAt       DateTime?
+  closedById     String?
+  createdAt      DateTime  @default(now())
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  message      ChatMessage      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  closedBy     User?            @relation("ChatPollClosedBy", fields: [closedById], references: [id])
+
+  options ChatPollOption[]
+  votes   ChatPollVote[]
+
+  @@index([conversationId])
+}
+
+model ChatPollOption {
+  id       String      @id @default(uuid())
+  pollId   String
+  text     VarChar(500)
+  position Int         @default(0)
+
+  poll  ChatPoll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes ChatPollVote[]
+
+  @@index([pollId])
+}
+
+model ChatPollVote {
+  id        String   @id @default(uuid())
+  pollId    String
+  optionId  String
+  userId    String
+  votedAt   DateTime @default(now())
+
+  poll   ChatPoll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  option ChatPollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user   User           @relation("ChatPollVoter", fields: [userId], references: [id])
+
+  @@unique([pollId, userId, optionId])
+  @@index([pollId, userId])
+}
+
+model ChatReport {
+  id             String    @id @default(uuid())
+  messageId      String?
+  conversationId String?
+  reportedById   String
+  reportedUserId String?
+  category       VarChar(30)
+  description    String?
+  status         VarChar(20) @default("OPEN")
+  resolvedById   String?
+  resolvedAt     DateTime?
+  resolution     String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now())
+
+  conversation ChatConversation? @relation(fields: [conversationId], references: [id])
+  reportedBy   User              @relation("ChatReportedBy", fields: [reportedById], references: [id])
+  resolvedBy   User?             @relation("ChatReportResolvedBy", fields: [resolvedById], references: [id])
+
+  @@index([status])
+  @@index([reportedById])
+}
+
+model CallRecord {
+  id            String    @id @default(uuid())
+  callerId      String
+  type          VarChar(10)
+  status        VarChar(20)
+  conversationId String?
+  startedAt     DateTime  @default(now())
+  answeredAt    DateTime?
+  endedAt       DateTime?
+  durationSecs  Int?
+  createdAt     DateTime  @default(now())
+
+  caller       User              @relation("CallCaller", fields: [callerId], references: [id])
+  participants CallParticipant[]
+
+  @@index([callerId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model CallParticipant {
+  id         String    @id @default(uuid())
+  callId     String
+  userId     String
+  joinedAt   DateTime?
+  leftAt     DateTime?
+  status     VarChar(20) @default("INVITED")
+
+  call CallRecord @relation(fields: [callId], references: [id], onDelete: Cascade)
+  user User       @relation("CallParticipantUser", fields: [userId], references: [id])
+
+  @@unique([callId, userId])
+  @@index([callId])
+}

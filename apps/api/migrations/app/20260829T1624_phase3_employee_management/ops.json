@@ -1,0 +1,4691 @@
+[
+  {
+    "id": "dropConstraint.section.section_departmentId_code_key",
+    "label": "Drop constraint \"section_departmentId_code_key\" on \"section\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "section_departmentId_code_key",
+        "table": "section"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"section_departmentId_code_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "section_departmentId_code_key",
+          "public",
+          "\"public\".\"section\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop constraint \"section_departmentId_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"section\" DROP CONSTRAINT \"section_departmentId_code_key\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"section_departmentId_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "section_departmentId_code_key",
+          "public",
+          "\"public\".\"section\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.documentCategory",
+    "label": "Create table \"documentCategory\"",
+    "summary": "Creates table \"documentCategory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "documentCategory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"documentCategory\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"documentCategory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"documentCategory\"",
+        "sql": "CREATE TABLE \"public\".\"documentCategory\" (\n  \"allowedMimeTypes\" text,\n  \"code\" character varying(20) NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"displayOrder\" int4 DEFAULT 0 NOT NULL,\n  \"expiryDateRequired\" bool DEFAULT false NOT NULL,\n  \"id\" text NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"isRequired\" bool DEFAULT false NOT NULL,\n  \"issueDateRequired\" bool DEFAULT false NOT NULL,\n  \"maxFileSizeMb\" int4 DEFAULT 10 NOT NULL,\n  \"name\" character varying(200) NOT NULL,\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"verificationRequired\" bool DEFAULT false NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"documentCategory\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"documentCategory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.documentRequirement",
+    "label": "Create table \"documentRequirement\"",
+    "summary": "Creates table \"documentRequirement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "documentRequirement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"documentRequirement\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"documentRequirement\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"documentRequirement\"",
+        "sql": "CREATE TABLE \"public\".\"documentRequirement\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"documentCategoryId\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"isRequired\" bool DEFAULT true NOT NULL,\n  \"scopeId\" text,\n  \"scopeType\" character varying(50) NOT NULL,\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"documentRequirement\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"documentRequirement\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.emergencyContact",
+    "label": "Create table \"emergencyContact\"",
+    "summary": "Creates table \"emergencyContact\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "emergencyContact"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"emergencyContact\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"emergencyContact\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"emergencyContact\"",
+        "sql": "CREATE TABLE \"public\".\"emergencyContact\" (\n  \"address\" text,\n  \"alternatePhone\" character varying(20),\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"employeeId\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"name\" character varying(200) NOT NULL,\n  \"phone\" character varying(20) NOT NULL,\n  \"priority\" int4 DEFAULT 1 NOT NULL,\n  \"relationship\" character varying(100),\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"emergencyContact\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"emergencyContact\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.employeeBankDetail",
+    "label": "Create table \"employeeBankDetail\"",
+    "summary": "Creates table \"employeeBankDetail\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "employeeBankDetail"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"employeeBankDetail\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeBankDetail\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"employeeBankDetail\"",
+        "sql": "CREATE TABLE \"public\".\"employeeBankDetail\" (\n  \"accountName\" character varying(200) NOT NULL,\n  \"accountNumber\" character varying(50) NOT NULL,\n  \"bankName\" character varying(200),\n  \"branch\" character varying(200),\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"employeeId\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"ifsc\" character varying(20) NOT NULL,\n  \"isVerified\" bool DEFAULT false NOT NULL,\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"employeeBankDetail\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeBankDetail\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.employeeCustomField",
+    "label": "Create table \"employeeCustomField\"",
+    "summary": "Creates table \"employeeCustomField\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "employeeCustomField"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"employeeCustomField\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeCustomField\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"employeeCustomField\"",
+        "sql": "CREATE TABLE \"public\".\"employeeCustomField\" (\n  \"code\" character varying(50) NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"defaultValue\" text,\n  \"displayOrder\" int4 DEFAULT 0 NOT NULL,\n  \"editableBy\" text,\n  \"fieldType\" character varying(20) NOT NULL,\n  \"id\" text NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"isRequired\" bool DEFAULT false NOT NULL,\n  \"name\" character varying(200) NOT NULL,\n  \"options\" json,\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"validationRule\" text,\n  \"visibleTo\" text,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"employeeCustomField\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeCustomField\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.employeeCustomFieldValue",
+    "label": "Create table \"employeeCustomFieldValue\"",
+    "summary": "Creates table \"employeeCustomFieldValue\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "employeeCustomFieldValue"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"employeeCustomFieldValue\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeCustomFieldValue\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"employeeCustomFieldValue\"",
+        "sql": "CREATE TABLE \"public\".\"employeeCustomFieldValue\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"employeeId\" text NOT NULL,\n  \"fieldId\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"value\" text,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"employeeCustomFieldValue\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeCustomFieldValue\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.employeeDocument",
+    "label": "Create table \"employeeDocument\"",
+    "summary": "Creates table \"employeeDocument\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "employeeDocument"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"employeeDocument\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeDocument\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"employeeDocument\"",
+        "sql": "CREATE TABLE \"public\".\"employeeDocument\" (\n  \"categoryId\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"deletedAt\" timestamptz,\n  \"documentNumber\" character varying(100),\n  \"employeeId\" text NOT NULL,\n  \"expiryDate\" date,\n  \"filename\" character varying(500) NOT NULL,\n  \"id\" text NOT NULL,\n  \"issueDate\" date,\n  \"mimeType\" character varying(100) NOT NULL,\n  \"sizeBytes\" int8,\n  \"storageKey\" text NOT NULL,\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"uploadedById\" text,\n  \"verificationNote\" text,\n  \"verificationStatus\" character varying(20) DEFAULT 'PENDING' NOT NULL,\n  \"verifiedAt\" timestamptz,\n  \"verifiedById\" text,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"employeeDocument\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeDocument\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.employeeExportJob",
+    "label": "Create table \"employeeExportJob\"",
+    "summary": "Creates table \"employeeExportJob\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "employeeExportJob"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"employeeExportJob\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeExportJob\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"employeeExportJob\"",
+        "sql": "CREATE TABLE \"public\".\"employeeExportJob\" (\n  \"completedAt\" timestamptz,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"errorMsg\" text,\n  \"expiresAt\" timestamptz,\n  \"failedAt\" timestamptz,\n  \"fields\" json,\n  \"filters\" json,\n  \"id\" text NOT NULL,\n  \"requestedById\" text NOT NULL,\n  \"status\" character varying(20) DEFAULT 'PENDING' NOT NULL,\n  \"storageKey\" text,\n  \"totalRows\" int4,\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"employeeExportJob\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeExportJob\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.employeeImportJob",
+    "label": "Create table \"employeeImportJob\"",
+    "summary": "Creates table \"employeeImportJob\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "employeeImportJob"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"employeeImportJob\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportJob\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"employeeImportJob\"",
+        "sql": "CREATE TABLE \"public\".\"employeeImportJob\" (\n  \"completedAt\" timestamptz,\n  \"confirmedAt\" timestamptz,\n  \"confirmedById\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"createdRows\" int4,\n  \"duplicateStrategy\" character varying(20) DEFAULT 'SKIP' NOT NULL,\n  \"errorRows\" int4,\n  \"errorSummary\" text,\n  \"failedAt\" timestamptz,\n  \"filename\" character varying(500),\n  \"id\" text NOT NULL,\n  \"initiatedById\" text NOT NULL,\n  \"resultStorageKey\" text,\n  \"skippedRows\" int4,\n  \"status\" character varying(20) DEFAULT 'PENDING' NOT NULL,\n  \"storageKey\" text,\n  \"templateId\" text,\n  \"totalRows\" int4,\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"updatedRows\" int4,\n  \"validRows\" int4,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"employeeImportJob\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportJob\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.employeeImportRow",
+    "label": "Create table \"employeeImportRow\"",
+    "summary": "Creates table \"employeeImportRow\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "employeeImportRow"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"employeeImportRow\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportRow\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"employeeImportRow\"",
+        "sql": "CREATE TABLE \"public\".\"employeeImportRow\" (\n  \"action\" character varying(20),\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"employeeId\" text,\n  \"id\" text NOT NULL,\n  \"jobId\" text NOT NULL,\n  \"mappedData\" json,\n  \"rawData\" json,\n  \"rowNumber\" int4 NOT NULL,\n  \"status\" character varying(20) DEFAULT 'PENDING' NOT NULL,\n  \"validationErrors\" json,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"employeeImportRow\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportRow\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.employeeOrgHistory",
+    "label": "Create table \"employeeOrgHistory\"",
+    "summary": "Creates table \"employeeOrgHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "employeeOrgHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"employeeOrgHistory\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeOrgHistory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"employeeOrgHistory\"",
+        "sql": "CREATE TABLE \"public\".\"employeeOrgHistory\" (\n  \"changeType\" character varying(50) NOT NULL,\n  \"changedById\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"effectiveFrom\" timestamptz NOT NULL,\n  \"effectiveTo\" timestamptz,\n  \"employeeId\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"newValue\" text,\n  \"oldValue\" text,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"employeeOrgHistory\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeOrgHistory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.employeeStatusConfig",
+    "label": "Create table \"employeeStatusConfig\"",
+    "summary": "Creates table \"employeeStatusConfig\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "employeeStatusConfig"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"employeeStatusConfig\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeStatusConfig\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"employeeStatusConfig\"",
+        "sql": "CREATE TABLE \"public\".\"employeeStatusConfig\" (\n  \"code\" character varying(20) NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"displayOrder\" int4 DEFAULT 0 NOT NULL,\n  \"id\" text NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"isSystem\" bool DEFAULT false NOT NULL,\n  \"name\" character varying(100) NOT NULL,\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"employeeStatusConfig\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeStatusConfig\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.employmentCategory",
+    "label": "Create table \"employmentCategory\"",
+    "summary": "Creates table \"employmentCategory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "employmentCategory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"employmentCategory\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employmentCategory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"employmentCategory\"",
+        "sql": "CREATE TABLE \"public\".\"employmentCategory\" (\n  \"code\" character varying(20) NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"id\" text NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"name\" character varying(100) NOT NULL,\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"employmentCategory\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employmentCategory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.employmentType",
+    "label": "Create table \"employmentType\"",
+    "summary": "Creates table \"employmentType\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "employmentType"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"employmentType\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employmentType\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"employmentType\"",
+        "sql": "CREATE TABLE \"public\".\"employmentType\" (\n  \"code\" character varying(20) NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"id\" text NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"name\" character varying(100) NOT NULL,\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"employmentType\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employmentType\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.importTemplate",
+    "label": "Create table \"importTemplate\"",
+    "summary": "Creates table \"importTemplate\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "importTemplate"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"importTemplate\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"importTemplate\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"importTemplate\"",
+        "sql": "CREATE TABLE \"public\".\"importTemplate\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"duplicateStrategy\" character varying(20) DEFAULT 'SKIP' NOT NULL,\n  \"id\" text NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"name\" character varying(200) NOT NULL,\n  \"templateType\" character varying(50) NOT NULL,\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"importTemplate\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"importTemplate\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.importTemplateMapping",
+    "label": "Create table \"importTemplateMapping\"",
+    "summary": "Creates table \"importTemplateMapping\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "importTemplateMapping"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"importTemplateMapping\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"importTemplateMapping\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"importTemplateMapping\"",
+        "sql": "CREATE TABLE \"public\".\"importTemplateMapping\" (\n  \"defaultValue\" text,\n  \"displayOrder\" int4 DEFAULT 0 NOT NULL,\n  \"id\" text NOT NULL,\n  \"isRequired\" bool DEFAULT false NOT NULL,\n  \"sourceColumn\" character varying(200) NOT NULL,\n  \"targetField\" character varying(100) NOT NULL,\n  \"templateId\" text NOT NULL,\n  \"transformation\" text,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"importTemplateMapping\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"importTemplateMapping\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.jobGrade",
+    "label": "Create table \"jobGrade\"",
+    "summary": "Creates table \"jobGrade\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "jobGrade"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"jobGrade\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"jobGrade\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"jobGrade\"",
+        "sql": "CREATE TABLE \"public\".\"jobGrade\" (\n  \"code\" character varying(20) NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"displayOrder\" int4 DEFAULT 0 NOT NULL,\n  \"id\" text NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"name\" character varying(100) NOT NULL,\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"jobGrade\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"jobGrade\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.company.description",
+    "label": "Add column \"description\" to \"company\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "description",
+        "table": "company"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"description\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "company",
+          "description"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"description\"",
+        "sql": "ALTER TABLE \"public\".\"company\" ADD COLUMN \"description\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"description\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "company",
+          "description"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.company.legalName",
+    "label": "Add column \"legalName\" to \"company\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "legalName",
+        "table": "company"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"legalName\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "company",
+          "legalName"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"legalName\"",
+        "sql": "ALTER TABLE \"public\".\"company\" ADD COLUMN \"legalName\" character varying(200)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"legalName\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "company",
+          "legalName"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.department.description",
+    "label": "Add column \"description\" to \"department\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "description",
+        "table": "department"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"description\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "department",
+          "description"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"description\"",
+        "sql": "ALTER TABLE \"public\".\"department\" ADD COLUMN \"description\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"description\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "department",
+          "description"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.department.displayOrder",
+    "label": "Add column \"displayOrder\" to \"department\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "displayOrder",
+        "table": "department"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"displayOrder\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "department",
+          "displayOrder"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"displayOrder\"",
+        "sql": "ALTER TABLE \"public\".\"department\" ADD COLUMN \"displayOrder\" int4 DEFAULT 0 NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"displayOrder\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "department",
+          "displayOrder"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.department.hodId",
+    "label": "Add column \"hodId\" to \"department\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "hodId",
+        "table": "department"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"hodId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "department",
+          "hodId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"hodId\"",
+        "sql": "ALTER TABLE \"public\".\"department\" ADD COLUMN \"hodId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"hodId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "department",
+          "hodId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.department.parentId",
+    "label": "Add column \"parentId\" to \"department\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "parentId",
+        "table": "department"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"parentId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "department",
+          "parentId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"parentId\"",
+        "sql": "ALTER TABLE \"public\".\"department\" ADD COLUMN \"parentId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"parentId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "department",
+          "parentId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.designation.code",
+    "label": "Add column \"code\" to \"designation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "code",
+        "table": "designation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"code\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "designation",
+          "code"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"code\"",
+        "sql": "ALTER TABLE \"public\".\"designation\" ADD COLUMN \"code\" character varying(20)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"code\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "designation",
+          "code"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.designation.description",
+    "label": "Add column \"description\" to \"designation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "description",
+        "table": "designation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"description\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "designation",
+          "description"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"description\"",
+        "sql": "ALTER TABLE \"public\".\"designation\" ADD COLUMN \"description\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"description\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "designation",
+          "description"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.designation.displayOrder",
+    "label": "Add column \"displayOrder\" to \"designation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "displayOrder",
+        "table": "designation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"displayOrder\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "designation",
+          "displayOrder"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"displayOrder\"",
+        "sql": "ALTER TABLE \"public\".\"designation\" ADD COLUMN \"displayOrder\" int4 DEFAULT 0 NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"displayOrder\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "designation",
+          "displayOrder"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.designation.jobGradeId",
+    "label": "Add column \"jobGradeId\" to \"designation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "jobGradeId",
+        "table": "designation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"jobGradeId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "designation",
+          "jobGradeId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"jobGradeId\"",
+        "sql": "ALTER TABLE \"public\".\"designation\" ADD COLUMN \"jobGradeId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"jobGradeId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "designation",
+          "jobGradeId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.division.description",
+    "label": "Add column \"description\" to \"division\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "description",
+        "table": "division"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"description\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "division",
+          "description"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"description\"",
+        "sql": "ALTER TABLE \"public\".\"division\" ADD COLUMN \"description\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"description\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "division",
+          "description"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.employee.employeeStatusId",
+    "label": "Add column \"employeeStatusId\" to \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "employeeStatusId",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"employeeStatusId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "employeeStatusId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"employeeStatusId\"",
+        "sql": "ALTER TABLE \"public\".\"employee\" ADD COLUMN \"employeeStatusId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"employeeStatusId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "employeeStatusId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.employee.employmentCategoryId",
+    "label": "Add column \"employmentCategoryId\" to \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "employmentCategoryId",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"employmentCategoryId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "employmentCategoryId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"employmentCategoryId\"",
+        "sql": "ALTER TABLE \"public\".\"employee\" ADD COLUMN \"employmentCategoryId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"employmentCategoryId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "employmentCategoryId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.employee.employmentTypeId",
+    "label": "Add column \"employmentTypeId\" to \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "employmentTypeId",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"employmentTypeId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "employmentTypeId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"employmentTypeId\"",
+        "sql": "ALTER TABLE \"public\".\"employee\" ADD COLUMN \"employmentTypeId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"employmentTypeId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "employmentTypeId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.employee.exitDate",
+    "label": "Add column \"exitDate\" to \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "exitDate",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"exitDate\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "exitDate"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"exitDate\"",
+        "sql": "ALTER TABLE \"public\".\"employee\" ADD COLUMN \"exitDate\" date"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"exitDate\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "exitDate"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.employee.hodId",
+    "label": "Add column \"hodId\" to \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "hodId",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"hodId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "hodId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"hodId\"",
+        "sql": "ALTER TABLE \"public\".\"employee\" ADD COLUMN \"hodId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"hodId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "hodId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.employee.jobGradeId",
+    "label": "Add column \"jobGradeId\" to \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "jobGradeId",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"jobGradeId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "jobGradeId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"jobGradeId\"",
+        "sql": "ALTER TABLE \"public\".\"employee\" ADD COLUMN \"jobGradeId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"jobGradeId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "jobGradeId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.employee.managerId",
+    "label": "Add column \"managerId\" to \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "managerId",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"managerId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "managerId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"managerId\"",
+        "sql": "ALTER TABLE \"public\".\"employee\" ADD COLUMN \"managerId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"managerId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "managerId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.employee.maritalStatus",
+    "label": "Add column \"maritalStatus\" to \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "maritalStatus",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"maritalStatus\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "maritalStatus"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"maritalStatus\"",
+        "sql": "ALTER TABLE \"public\".\"employee\" ADD COLUMN \"maritalStatus\" character varying(20)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"maritalStatus\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "maritalStatus"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.employee.mobile",
+    "label": "Add column \"mobile\" to \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "mobile",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"mobile\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "mobile"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"mobile\"",
+        "sql": "ALTER TABLE \"public\".\"employee\" ADD COLUMN \"mobile\" character varying(20)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"mobile\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "mobile"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.employee.officialEmail",
+    "label": "Add column \"officialEmail\" to \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "officialEmail",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"officialEmail\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "officialEmail"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"officialEmail\"",
+        "sql": "ALTER TABLE \"public\".\"employee\" ADD COLUMN \"officialEmail\" character varying(200)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"officialEmail\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "officialEmail"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.employee.personalEmail",
+    "label": "Add column \"personalEmail\" to \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "personalEmail",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"personalEmail\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "personalEmail"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"personalEmail\"",
+        "sql": "ALTER TABLE \"public\".\"employee\" ADD COLUMN \"personalEmail\" character varying(200)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"personalEmail\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "personalEmail"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.employee.subHodId",
+    "label": "Add column \"subHodId\" to \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "subHodId",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"subHodId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "subHodId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"subHodId\"",
+        "sql": "ALTER TABLE \"public\".\"employee\" ADD COLUMN \"subHodId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"subHodId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "subHodId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.location.city",
+    "label": "Add column \"city\" to \"location\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "city",
+        "table": "location"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"city\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "location",
+          "city"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"city\"",
+        "sql": "ALTER TABLE \"public\".\"location\" ADD COLUMN \"city\" character varying(100)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"city\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "location",
+          "city"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.location.country",
+    "label": "Add column \"country\" to \"location\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "country",
+        "table": "location"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"country\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "location",
+          "country"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"country\"",
+        "sql": "ALTER TABLE \"public\".\"location\" ADD COLUMN \"country\" character varying(100)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"country\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "location",
+          "country"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.location.description",
+    "label": "Add column \"description\" to \"location\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "description",
+        "table": "location"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"description\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "location",
+          "description"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"description\"",
+        "sql": "ALTER TABLE \"public\".\"location\" ADD COLUMN \"description\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"description\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "location",
+          "description"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.location.state",
+    "label": "Add column \"state\" to \"location\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "state",
+        "table": "location"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"state\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "location",
+          "state"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"state\"",
+        "sql": "ALTER TABLE \"public\".\"location\" ADD COLUMN \"state\" character varying(100)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"state\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "location",
+          "state"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.section.description",
+    "label": "Add column \"description\" to \"section\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "description",
+        "table": "section"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"description\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "section",
+          "description"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"description\"",
+        "sql": "ALTER TABLE \"public\".\"section\" ADD COLUMN \"description\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"description\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "section",
+          "description"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.section.displayOrder",
+    "label": "Add column \"displayOrder\" to \"section\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "displayOrder",
+        "table": "section"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"displayOrder\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "section",
+          "displayOrder"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"displayOrder\"",
+        "sql": "ALTER TABLE \"public\".\"section\" ADD COLUMN \"displayOrder\" int4 DEFAULT 0 NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"displayOrder\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "section",
+          "displayOrder"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.section.subHodId",
+    "label": "Add column \"subHodId\" to \"section\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "subHodId",
+        "table": "section"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"subHodId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "section",
+          "subHodId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"subHodId\"",
+        "sql": "ALTER TABLE \"public\".\"section\" ADD COLUMN \"subHodId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"subHodId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "section",
+          "subHodId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.dropNotNull.designation.sectionId",
+    "label": "Drop NOT NULL on \"designation\".\"sectionId\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "sectionId",
+        "table": "designation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"sectionId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "designation",
+          "sectionId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop NOT NULL on \"sectionId\"",
+        "sql": "ALTER TABLE \"public\".\"designation\" ALTER COLUMN \"sectionId\" DROP NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"sectionId\" is nullable",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "designation",
+          "sectionId",
+          "YES"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.dropNotNull.employee.userId",
+    "label": "Drop NOT NULL on \"employee\".\"userId\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "userId",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"userId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "userId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop NOT NULL on \"userId\"",
+        "sql": "ALTER TABLE \"public\".\"employee\" ALTER COLUMN \"userId\" DROP NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"userId\" is nullable",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "employee",
+          "userId",
+          "YES"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.dropNotNull.section.code",
+    "label": "Drop NOT NULL on \"section\".\"code\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "code",
+        "table": "section"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"code\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "section",
+          "code"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop NOT NULL on \"code\"",
+        "sql": "ALTER TABLE \"public\".\"section\" ALTER COLUMN \"code\" DROP NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"code\" is nullable",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "section",
+          "code",
+          "YES"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.designation.designation_code_key",
+    "label": "Add unique constraint on \"designation\" (code)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "designation_code_key",
+        "table": "designation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"designation_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "designation_code_key",
+          "public",
+          "\"public\".\"designation\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"designation_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"designation\" ADD CONSTRAINT \"designation_code_key\" UNIQUE (\"code\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"designation_code_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "designation_code_key",
+          "public",
+          "\"public\".\"designation\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.documentCategory.documentCategory_code_key",
+    "label": "Add unique constraint on \"documentCategory\" (code)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "documentCategory_code_key",
+        "table": "documentCategory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"documentCategory_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "documentCategory_code_key",
+          "public",
+          "\"public\".\"documentCategory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"documentCategory_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"documentCategory\" ADD CONSTRAINT \"documentCategory_code_key\" UNIQUE (\"code\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"documentCategory_code_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "documentCategory_code_key",
+          "public",
+          "\"public\".\"documentCategory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.employeeBankDetail.employeeBankDetail_employeeId_key",
+    "label": "Add unique constraint on \"employeeBankDetail\" (employeeId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "employeeBankDetail_employeeId_key",
+        "table": "employeeBankDetail"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"employeeBankDetail_employeeId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeBankDetail_employeeId_key",
+          "public",
+          "\"public\".\"employeeBankDetail\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"employeeBankDetail_employeeId_key\"",
+        "sql": "ALTER TABLE \"public\".\"employeeBankDetail\" ADD CONSTRAINT \"employeeBankDetail_employeeId_key\" UNIQUE (\"employeeId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"employeeBankDetail_employeeId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeBankDetail_employeeId_key",
+          "public",
+          "\"public\".\"employeeBankDetail\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.employeeCustomField.employeeCustomField_code_key",
+    "label": "Add unique constraint on \"employeeCustomField\" (code)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "employeeCustomField_code_key",
+        "table": "employeeCustomField"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"employeeCustomField_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeCustomField_code_key",
+          "public",
+          "\"public\".\"employeeCustomField\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"employeeCustomField_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"employeeCustomField\" ADD CONSTRAINT \"employeeCustomField_code_key\" UNIQUE (\"code\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"employeeCustomField_code_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeCustomField_code_key",
+          "public",
+          "\"public\".\"employeeCustomField\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.employeeCustomFieldValue.employeeCustomFieldValue_employeeId_fieldId_key",
+    "label": "Add unique constraint on \"employeeCustomFieldValue\" (employeeId, fieldId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "employeeCustomFieldValue_employeeId_fieldId_key",
+        "table": "employeeCustomFieldValue"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"employeeCustomFieldValue_employeeId_fieldId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeCustomFieldValue_employeeId_fieldId_key",
+          "public",
+          "\"public\".\"employeeCustomFieldValue\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"employeeCustomFieldValue_employeeId_fieldId_key\"",
+        "sql": "ALTER TABLE \"public\".\"employeeCustomFieldValue\" ADD CONSTRAINT \"employeeCustomFieldValue_employeeId_fieldId_key\" UNIQUE (\"employeeId\", \"fieldId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"employeeCustomFieldValue_employeeId_fieldId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeCustomFieldValue_employeeId_fieldId_key",
+          "public",
+          "\"public\".\"employeeCustomFieldValue\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.employeeStatusConfig.employeeStatusConfig_code_key",
+    "label": "Add unique constraint on \"employeeStatusConfig\" (code)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "employeeStatusConfig_code_key",
+        "table": "employeeStatusConfig"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"employeeStatusConfig_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeStatusConfig_code_key",
+          "public",
+          "\"public\".\"employeeStatusConfig\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"employeeStatusConfig_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"employeeStatusConfig\" ADD CONSTRAINT \"employeeStatusConfig_code_key\" UNIQUE (\"code\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"employeeStatusConfig_code_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeStatusConfig_code_key",
+          "public",
+          "\"public\".\"employeeStatusConfig\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.employmentCategory.employmentCategory_code_key",
+    "label": "Add unique constraint on \"employmentCategory\" (code)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "employmentCategory_code_key",
+        "table": "employmentCategory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"employmentCategory_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employmentCategory_code_key",
+          "public",
+          "\"public\".\"employmentCategory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"employmentCategory_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"employmentCategory\" ADD CONSTRAINT \"employmentCategory_code_key\" UNIQUE (\"code\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"employmentCategory_code_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employmentCategory_code_key",
+          "public",
+          "\"public\".\"employmentCategory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.employmentType.employmentType_code_key",
+    "label": "Add unique constraint on \"employmentType\" (code)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "employmentType_code_key",
+        "table": "employmentType"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"employmentType_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employmentType_code_key",
+          "public",
+          "\"public\".\"employmentType\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"employmentType_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"employmentType\" ADD CONSTRAINT \"employmentType_code_key\" UNIQUE (\"code\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"employmentType_code_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employmentType_code_key",
+          "public",
+          "\"public\".\"employmentType\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.jobGrade.jobGrade_code_key",
+    "label": "Add unique constraint on \"jobGrade\" (code)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "jobGrade_code_key",
+        "table": "jobGrade"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"jobGrade_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "jobGrade_code_key",
+          "public",
+          "\"public\".\"jobGrade\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"jobGrade_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"jobGrade\" ADD CONSTRAINT \"jobGrade_code_key\" UNIQUE (\"code\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"jobGrade_code_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "jobGrade_code_key",
+          "public",
+          "\"public\".\"jobGrade\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.department.department_hodId_idx_2d3c7cef",
+    "label": "Create index \"department_hodId_idx_2d3c7cef\" on \"department\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "department_hodId_idx_2d3c7cef",
+        "table": "department"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"department_hodId_idx_2d3c7cef\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"department_hodId_idx_2d3c7cef\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"department_hodId_idx_2d3c7cef\"",
+        "sql": "CREATE INDEX \"department_hodId_idx_2d3c7cef\" ON \"public\".\"department\" (\"hodId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"department_hodId_idx_2d3c7cef\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"department_hodId_idx_2d3c7cef\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.department.department_parentId_idx_6a68f597",
+    "label": "Create index \"department_parentId_idx_6a68f597\" on \"department\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "department_parentId_idx_6a68f597",
+        "table": "department"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"department_parentId_idx_6a68f597\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"department_parentId_idx_6a68f597\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"department_parentId_idx_6a68f597\"",
+        "sql": "CREATE INDEX \"department_parentId_idx_6a68f597\" ON \"public\".\"department\" (\"parentId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"department_parentId_idx_6a68f597\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"department_parentId_idx_6a68f597\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.designation.designation_jobGradeId_idx_cc648f6d",
+    "label": "Create index \"designation_jobGradeId_idx_cc648f6d\" on \"designation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "designation_jobGradeId_idx_cc648f6d",
+        "table": "designation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"designation_jobGradeId_idx_cc648f6d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"designation_jobGradeId_idx_cc648f6d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"designation_jobGradeId_idx_cc648f6d\"",
+        "sql": "CREATE INDEX \"designation_jobGradeId_idx_cc648f6d\" ON \"public\".\"designation\" (\"jobGradeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"designation_jobGradeId_idx_cc648f6d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"designation_jobGradeId_idx_cc648f6d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.documentRequirement.documentRequirement_documentCategoryId_idx_d7317071",
+    "label": "Create index \"documentRequirement_documentCategoryId_idx_d7317071\" on \"documentRequirement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "documentRequirement_documentCategoryId_idx_d7317071",
+        "table": "documentRequirement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"documentRequirement_documentCategoryId_idx_d7317071\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"documentRequirement_documentCategoryId_idx_d7317071\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"documentRequirement_documentCategoryId_idx_d7317071\"",
+        "sql": "CREATE INDEX \"documentRequirement_documentCategoryId_idx_d7317071\" ON \"public\".\"documentRequirement\" (\"documentCategoryId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"documentRequirement_documentCategoryId_idx_d7317071\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"documentRequirement_documentCategoryId_idx_d7317071\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.documentRequirement.documentRequirement_scopeType_scopeId_idx_4b234c68",
+    "label": "Create index \"documentRequirement_scopeType_scopeId_idx_4b234c68\" on \"documentRequirement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "documentRequirement_scopeType_scopeId_idx_4b234c68",
+        "table": "documentRequirement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"documentRequirement_scopeType_scopeId_idx_4b234c68\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"documentRequirement_scopeType_scopeId_idx_4b234c68\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"documentRequirement_scopeType_scopeId_idx_4b234c68\"",
+        "sql": "CREATE INDEX \"documentRequirement_scopeType_scopeId_idx_4b234c68\" ON \"public\".\"documentRequirement\" (\"scopeType\", \"scopeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"documentRequirement_scopeType_scopeId_idx_4b234c68\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"documentRequirement_scopeType_scopeId_idx_4b234c68\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.emergencyContact.emergencyContact_employeeId_idx_087dd4a6",
+    "label": "Create index \"emergencyContact_employeeId_idx_087dd4a6\" on \"emergencyContact\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "emergencyContact_employeeId_idx_087dd4a6",
+        "table": "emergencyContact"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"emergencyContact_employeeId_idx_087dd4a6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"emergencyContact_employeeId_idx_087dd4a6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"emergencyContact_employeeId_idx_087dd4a6\"",
+        "sql": "CREATE INDEX \"emergencyContact_employeeId_idx_087dd4a6\" ON \"public\".\"emergencyContact\" (\"employeeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"emergencyContact_employeeId_idx_087dd4a6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"emergencyContact_employeeId_idx_087dd4a6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employee.employee_deletedAt_idx_a39f721c",
+    "label": "Create index \"employee_deletedAt_idx_a39f721c\" on \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employee_deletedAt_idx_a39f721c",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employee_deletedAt_idx_a39f721c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employee_deletedAt_idx_a39f721c\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employee_deletedAt_idx_a39f721c\"",
+        "sql": "CREATE INDEX \"employee_deletedAt_idx_a39f721c\" ON \"public\".\"employee\" (\"deletedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employee_deletedAt_idx_a39f721c\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employee_deletedAt_idx_a39f721c\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employee.employee_employeeCode_idx_80ae4477",
+    "label": "Create index \"employee_employeeCode_idx_80ae4477\" on \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employee_employeeCode_idx_80ae4477",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employee_employeeCode_idx_80ae4477\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employee_employeeCode_idx_80ae4477\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employee_employeeCode_idx_80ae4477\"",
+        "sql": "CREATE INDEX \"employee_employeeCode_idx_80ae4477\" ON \"public\".\"employee\" (\"employeeCode\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employee_employeeCode_idx_80ae4477\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employee_employeeCode_idx_80ae4477\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employee.employee_employmentCategoryId_idx_36dbd791",
+    "label": "Create index \"employee_employmentCategoryId_idx_36dbd791\" on \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employee_employmentCategoryId_idx_36dbd791",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employee_employmentCategoryId_idx_36dbd791\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employee_employmentCategoryId_idx_36dbd791\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employee_employmentCategoryId_idx_36dbd791\"",
+        "sql": "CREATE INDEX \"employee_employmentCategoryId_idx_36dbd791\" ON \"public\".\"employee\" (\"employmentCategoryId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employee_employmentCategoryId_idx_36dbd791\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employee_employmentCategoryId_idx_36dbd791\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employee.employee_employmentTypeId_idx_45f4711d",
+    "label": "Create index \"employee_employmentTypeId_idx_45f4711d\" on \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employee_employmentTypeId_idx_45f4711d",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employee_employmentTypeId_idx_45f4711d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employee_employmentTypeId_idx_45f4711d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employee_employmentTypeId_idx_45f4711d\"",
+        "sql": "CREATE INDEX \"employee_employmentTypeId_idx_45f4711d\" ON \"public\".\"employee\" (\"employmentTypeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employee_employmentTypeId_idx_45f4711d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employee_employmentTypeId_idx_45f4711d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employee.employee_jobGradeId_idx_cc648f6d",
+    "label": "Create index \"employee_jobGradeId_idx_cc648f6d\" on \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employee_jobGradeId_idx_cc648f6d",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employee_jobGradeId_idx_cc648f6d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employee_jobGradeId_idx_cc648f6d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employee_jobGradeId_idx_cc648f6d\"",
+        "sql": "CREATE INDEX \"employee_jobGradeId_idx_cc648f6d\" ON \"public\".\"employee\" (\"jobGradeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employee_jobGradeId_idx_cc648f6d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employee_jobGradeId_idx_cc648f6d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employee.employee_managerId_idx_f8369ba6",
+    "label": "Create index \"employee_managerId_idx_f8369ba6\" on \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employee_managerId_idx_f8369ba6",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employee_managerId_idx_f8369ba6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employee_managerId_idx_f8369ba6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employee_managerId_idx_f8369ba6\"",
+        "sql": "CREATE INDEX \"employee_managerId_idx_f8369ba6\" ON \"public\".\"employee\" (\"managerId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employee_managerId_idx_f8369ba6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employee_managerId_idx_f8369ba6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeCustomFieldValue.employeeCustomFieldValue_employeeId_idx_087dd4a6",
+    "label": "Create index \"employeeCustomFieldValue_employeeId_idx_087dd4a6\" on \"employeeCustomFieldValue\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeCustomFieldValue_employeeId_idx_087dd4a6",
+        "table": "employeeCustomFieldValue"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeCustomFieldValue_employeeId_idx_087dd4a6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeCustomFieldValue_employeeId_idx_087dd4a6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeCustomFieldValue_employeeId_idx_087dd4a6\"",
+        "sql": "CREATE INDEX \"employeeCustomFieldValue_employeeId_idx_087dd4a6\" ON \"public\".\"employeeCustomFieldValue\" (\"employeeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeCustomFieldValue_employeeId_idx_087dd4a6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeCustomFieldValue_employeeId_idx_087dd4a6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeCustomFieldValue.employeeCustomFieldValue_fieldId_idx_44d815d7",
+    "label": "Create index \"employeeCustomFieldValue_fieldId_idx_44d815d7\" on \"employeeCustomFieldValue\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeCustomFieldValue_fieldId_idx_44d815d7",
+        "table": "employeeCustomFieldValue"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeCustomFieldValue_fieldId_idx_44d815d7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeCustomFieldValue_fieldId_idx_44d815d7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeCustomFieldValue_fieldId_idx_44d815d7\"",
+        "sql": "CREATE INDEX \"employeeCustomFieldValue_fieldId_idx_44d815d7\" ON \"public\".\"employeeCustomFieldValue\" (\"fieldId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeCustomFieldValue_fieldId_idx_44d815d7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeCustomFieldValue_fieldId_idx_44d815d7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeDocument.employeeDocument_categoryId_idx_15c304f2",
+    "label": "Create index \"employeeDocument_categoryId_idx_15c304f2\" on \"employeeDocument\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeDocument_categoryId_idx_15c304f2",
+        "table": "employeeDocument"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeDocument_categoryId_idx_15c304f2\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeDocument_categoryId_idx_15c304f2\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeDocument_categoryId_idx_15c304f2\"",
+        "sql": "CREATE INDEX \"employeeDocument_categoryId_idx_15c304f2\" ON \"public\".\"employeeDocument\" (\"categoryId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeDocument_categoryId_idx_15c304f2\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeDocument_categoryId_idx_15c304f2\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeDocument.employeeDocument_employeeId_idx_087dd4a6",
+    "label": "Create index \"employeeDocument_employeeId_idx_087dd4a6\" on \"employeeDocument\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeDocument_employeeId_idx_087dd4a6",
+        "table": "employeeDocument"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeDocument_employeeId_idx_087dd4a6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeDocument_employeeId_idx_087dd4a6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeDocument_employeeId_idx_087dd4a6\"",
+        "sql": "CREATE INDEX \"employeeDocument_employeeId_idx_087dd4a6\" ON \"public\".\"employeeDocument\" (\"employeeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeDocument_employeeId_idx_087dd4a6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeDocument_employeeId_idx_087dd4a6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeDocument.employeeDocument_uploadedById_idx_b92fad21",
+    "label": "Create index \"employeeDocument_uploadedById_idx_b92fad21\" on \"employeeDocument\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeDocument_uploadedById_idx_b92fad21",
+        "table": "employeeDocument"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeDocument_uploadedById_idx_b92fad21\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeDocument_uploadedById_idx_b92fad21\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeDocument_uploadedById_idx_b92fad21\"",
+        "sql": "CREATE INDEX \"employeeDocument_uploadedById_idx_b92fad21\" ON \"public\".\"employeeDocument\" (\"uploadedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeDocument_uploadedById_idx_b92fad21\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeDocument_uploadedById_idx_b92fad21\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeDocument.employeeDocument_verifiedById_idx_dfd74b37",
+    "label": "Create index \"employeeDocument_verifiedById_idx_dfd74b37\" on \"employeeDocument\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeDocument_verifiedById_idx_dfd74b37",
+        "table": "employeeDocument"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeDocument_verifiedById_idx_dfd74b37\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeDocument_verifiedById_idx_dfd74b37\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeDocument_verifiedById_idx_dfd74b37\"",
+        "sql": "CREATE INDEX \"employeeDocument_verifiedById_idx_dfd74b37\" ON \"public\".\"employeeDocument\" (\"verifiedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeDocument_verifiedById_idx_dfd74b37\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeDocument_verifiedById_idx_dfd74b37\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeExportJob.employeeExportJob_requestedById_idx_f9a56c66",
+    "label": "Create index \"employeeExportJob_requestedById_idx_f9a56c66\" on \"employeeExportJob\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeExportJob_requestedById_idx_f9a56c66",
+        "table": "employeeExportJob"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeExportJob_requestedById_idx_f9a56c66\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeExportJob_requestedById_idx_f9a56c66\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeExportJob_requestedById_idx_f9a56c66\"",
+        "sql": "CREATE INDEX \"employeeExportJob_requestedById_idx_f9a56c66\" ON \"public\".\"employeeExportJob\" (\"requestedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeExportJob_requestedById_idx_f9a56c66\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeExportJob_requestedById_idx_f9a56c66\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeExportJob.employeeExportJob_status_idx_e98638ab",
+    "label": "Create index \"employeeExportJob_status_idx_e98638ab\" on \"employeeExportJob\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeExportJob_status_idx_e98638ab",
+        "table": "employeeExportJob"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeExportJob_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeExportJob_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeExportJob_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"employeeExportJob_status_idx_e98638ab\" ON \"public\".\"employeeExportJob\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeExportJob_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeExportJob_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeImportJob.employeeImportJob_confirmedById_idx_bf02ea5f",
+    "label": "Create index \"employeeImportJob_confirmedById_idx_bf02ea5f\" on \"employeeImportJob\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeImportJob_confirmedById_idx_bf02ea5f",
+        "table": "employeeImportJob"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeImportJob_confirmedById_idx_bf02ea5f\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportJob_confirmedById_idx_bf02ea5f\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeImportJob_confirmedById_idx_bf02ea5f\"",
+        "sql": "CREATE INDEX \"employeeImportJob_confirmedById_idx_bf02ea5f\" ON \"public\".\"employeeImportJob\" (\"confirmedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeImportJob_confirmedById_idx_bf02ea5f\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportJob_confirmedById_idx_bf02ea5f\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeImportJob.employeeImportJob_initiatedById_idx_49d2866e",
+    "label": "Create index \"employeeImportJob_initiatedById_idx_49d2866e\" on \"employeeImportJob\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeImportJob_initiatedById_idx_49d2866e",
+        "table": "employeeImportJob"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeImportJob_initiatedById_idx_49d2866e\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportJob_initiatedById_idx_49d2866e\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeImportJob_initiatedById_idx_49d2866e\"",
+        "sql": "CREATE INDEX \"employeeImportJob_initiatedById_idx_49d2866e\" ON \"public\".\"employeeImportJob\" (\"initiatedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeImportJob_initiatedById_idx_49d2866e\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportJob_initiatedById_idx_49d2866e\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeImportJob.employeeImportJob_status_idx_e98638ab",
+    "label": "Create index \"employeeImportJob_status_idx_e98638ab\" on \"employeeImportJob\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeImportJob_status_idx_e98638ab",
+        "table": "employeeImportJob"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeImportJob_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportJob_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeImportJob_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"employeeImportJob_status_idx_e98638ab\" ON \"public\".\"employeeImportJob\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeImportJob_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportJob_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeImportJob.employeeImportJob_templateId_idx_19e0d972",
+    "label": "Create index \"employeeImportJob_templateId_idx_19e0d972\" on \"employeeImportJob\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeImportJob_templateId_idx_19e0d972",
+        "table": "employeeImportJob"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeImportJob_templateId_idx_19e0d972\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportJob_templateId_idx_19e0d972\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeImportJob_templateId_idx_19e0d972\"",
+        "sql": "CREATE INDEX \"employeeImportJob_templateId_idx_19e0d972\" ON \"public\".\"employeeImportJob\" (\"templateId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeImportJob_templateId_idx_19e0d972\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportJob_templateId_idx_19e0d972\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeImportRow.employeeImportRow_employeeId_idx_087dd4a6",
+    "label": "Create index \"employeeImportRow_employeeId_idx_087dd4a6\" on \"employeeImportRow\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeImportRow_employeeId_idx_087dd4a6",
+        "table": "employeeImportRow"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeImportRow_employeeId_idx_087dd4a6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportRow_employeeId_idx_087dd4a6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeImportRow_employeeId_idx_087dd4a6\"",
+        "sql": "CREATE INDEX \"employeeImportRow_employeeId_idx_087dd4a6\" ON \"public\".\"employeeImportRow\" (\"employeeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeImportRow_employeeId_idx_087dd4a6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportRow_employeeId_idx_087dd4a6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeImportRow.employeeImportRow_jobId_idx_623c8f77",
+    "label": "Create index \"employeeImportRow_jobId_idx_623c8f77\" on \"employeeImportRow\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeImportRow_jobId_idx_623c8f77",
+        "table": "employeeImportRow"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeImportRow_jobId_idx_623c8f77\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportRow_jobId_idx_623c8f77\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeImportRow_jobId_idx_623c8f77\"",
+        "sql": "CREATE INDEX \"employeeImportRow_jobId_idx_623c8f77\" ON \"public\".\"employeeImportRow\" (\"jobId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeImportRow_jobId_idx_623c8f77\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportRow_jobId_idx_623c8f77\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeImportRow.employeeImportRow_status_idx_e98638ab",
+    "label": "Create index \"employeeImportRow_status_idx_e98638ab\" on \"employeeImportRow\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeImportRow_status_idx_e98638ab",
+        "table": "employeeImportRow"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeImportRow_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportRow_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeImportRow_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"employeeImportRow_status_idx_e98638ab\" ON \"public\".\"employeeImportRow\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeImportRow_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeImportRow_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeOrgHistory.employeeOrgHistory_changeType_idx_de42dc88",
+    "label": "Create index \"employeeOrgHistory_changeType_idx_de42dc88\" on \"employeeOrgHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeOrgHistory_changeType_idx_de42dc88",
+        "table": "employeeOrgHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeOrgHistory_changeType_idx_de42dc88\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeOrgHistory_changeType_idx_de42dc88\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeOrgHistory_changeType_idx_de42dc88\"",
+        "sql": "CREATE INDEX \"employeeOrgHistory_changeType_idx_de42dc88\" ON \"public\".\"employeeOrgHistory\" (\"changeType\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeOrgHistory_changeType_idx_de42dc88\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeOrgHistory_changeType_idx_de42dc88\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeOrgHistory.employeeOrgHistory_changedById_idx_d6e6aadb",
+    "label": "Create index \"employeeOrgHistory_changedById_idx_d6e6aadb\" on \"employeeOrgHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeOrgHistory_changedById_idx_d6e6aadb",
+        "table": "employeeOrgHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeOrgHistory_changedById_idx_d6e6aadb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeOrgHistory_changedById_idx_d6e6aadb\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeOrgHistory_changedById_idx_d6e6aadb\"",
+        "sql": "CREATE INDEX \"employeeOrgHistory_changedById_idx_d6e6aadb\" ON \"public\".\"employeeOrgHistory\" (\"changedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeOrgHistory_changedById_idx_d6e6aadb\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeOrgHistory_changedById_idx_d6e6aadb\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.employeeOrgHistory.employeeOrgHistory_employeeId_idx_087dd4a6",
+    "label": "Create index \"employeeOrgHistory_employeeId_idx_087dd4a6\" on \"employeeOrgHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "employeeOrgHistory_employeeId_idx_087dd4a6",
+        "table": "employeeOrgHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"employeeOrgHistory_employeeId_idx_087dd4a6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeOrgHistory_employeeId_idx_087dd4a6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"employeeOrgHistory_employeeId_idx_087dd4a6\"",
+        "sql": "CREATE INDEX \"employeeOrgHistory_employeeId_idx_087dd4a6\" ON \"public\".\"employeeOrgHistory\" (\"employeeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"employeeOrgHistory_employeeId_idx_087dd4a6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"employeeOrgHistory_employeeId_idx_087dd4a6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.importTemplateMapping.importTemplateMapping_templateId_idx_19e0d972",
+    "label": "Create index \"importTemplateMapping_templateId_idx_19e0d972\" on \"importTemplateMapping\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "importTemplateMapping_templateId_idx_19e0d972",
+        "table": "importTemplateMapping"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"importTemplateMapping_templateId_idx_19e0d972\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"importTemplateMapping_templateId_idx_19e0d972\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"importTemplateMapping_templateId_idx_19e0d972\"",
+        "sql": "CREATE INDEX \"importTemplateMapping_templateId_idx_19e0d972\" ON \"public\".\"importTemplateMapping\" (\"templateId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"importTemplateMapping_templateId_idx_19e0d972\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"importTemplateMapping_templateId_idx_19e0d972\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.department.department_parentId_fkey",
+    "label": "Add foreign key \"department_parentId_fkey\" on \"department\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "department_parentId_fkey",
+        "table": "department"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"department_parentId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "department_parentId_fkey",
+          "public",
+          "\"public\".\"department\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"department_parentId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"department\"\nADD CONSTRAINT \"department_parentId_fkey\"\nFOREIGN KEY (\"parentId\")\nREFERENCES \"public\".\"department\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"department_parentId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "department_parentId_fkey",
+          "public",
+          "\"public\".\"department\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.documentRequirement.documentRequirement_documentCategoryId_fkey",
+    "label": "Add foreign key \"documentRequirement_documentCategoryId_fkey\" on \"documentRequirement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "documentRequirement_documentCategoryId_fkey",
+        "table": "documentRequirement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"documentRequirement_documentCategoryId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "documentRequirement_documentCategoryId_fkey",
+          "public",
+          "\"public\".\"documentRequirement\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"documentRequirement_documentCategoryId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"documentRequirement\"\nADD CONSTRAINT \"documentRequirement_documentCategoryId_fkey\"\nFOREIGN KEY (\"documentCategoryId\")\nREFERENCES \"public\".\"documentCategory\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"documentRequirement_documentCategoryId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "documentRequirement_documentCategoryId_fkey",
+          "public",
+          "\"public\".\"documentRequirement\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.emergencyContact.emergencyContact_employeeId_fkey",
+    "label": "Add foreign key \"emergencyContact_employeeId_fkey\" on \"emergencyContact\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "emergencyContact_employeeId_fkey",
+        "table": "emergencyContact"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"emergencyContact_employeeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "emergencyContact_employeeId_fkey",
+          "public",
+          "\"public\".\"emergencyContact\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"emergencyContact_employeeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"emergencyContact\"\nADD CONSTRAINT \"emergencyContact_employeeId_fkey\"\nFOREIGN KEY (\"employeeId\")\nREFERENCES \"public\".\"employee\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"emergencyContact_employeeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "emergencyContact_employeeId_fkey",
+          "public",
+          "\"public\".\"emergencyContact\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employee.employee_managerId_fkey",
+    "label": "Add foreign key \"employee_managerId_fkey\" on \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employee_managerId_fkey",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employee_managerId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employee_managerId_fkey",
+          "public",
+          "\"public\".\"employee\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employee_managerId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employee\"\nADD CONSTRAINT \"employee_managerId_fkey\"\nFOREIGN KEY (\"managerId\")\nREFERENCES \"public\".\"employee\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employee_managerId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employee_managerId_fkey",
+          "public",
+          "\"public\".\"employee\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeBankDetail.employeeBankDetail_employeeId_fkey",
+    "label": "Add foreign key \"employeeBankDetail_employeeId_fkey\" on \"employeeBankDetail\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeBankDetail_employeeId_fkey",
+        "table": "employeeBankDetail"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeBankDetail_employeeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeBankDetail_employeeId_fkey",
+          "public",
+          "\"public\".\"employeeBankDetail\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeBankDetail_employeeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeBankDetail\"\nADD CONSTRAINT \"employeeBankDetail_employeeId_fkey\"\nFOREIGN KEY (\"employeeId\")\nREFERENCES \"public\".\"employee\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeBankDetail_employeeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeBankDetail_employeeId_fkey",
+          "public",
+          "\"public\".\"employeeBankDetail\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeCustomFieldValue.employeeCustomFieldValue_employeeId_fkey",
+    "label": "Add foreign key \"employeeCustomFieldValue_employeeId_fkey\" on \"employeeCustomFieldValue\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeCustomFieldValue_employeeId_fkey",
+        "table": "employeeCustomFieldValue"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeCustomFieldValue_employeeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeCustomFieldValue_employeeId_fkey",
+          "public",
+          "\"public\".\"employeeCustomFieldValue\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeCustomFieldValue_employeeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeCustomFieldValue\"\nADD CONSTRAINT \"employeeCustomFieldValue_employeeId_fkey\"\nFOREIGN KEY (\"employeeId\")\nREFERENCES \"public\".\"employee\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeCustomFieldValue_employeeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeCustomFieldValue_employeeId_fkey",
+          "public",
+          "\"public\".\"employeeCustomFieldValue\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeCustomFieldValue.employeeCustomFieldValue_fieldId_fkey",
+    "label": "Add foreign key \"employeeCustomFieldValue_fieldId_fkey\" on \"employeeCustomFieldValue\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeCustomFieldValue_fieldId_fkey",
+        "table": "employeeCustomFieldValue"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeCustomFieldValue_fieldId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeCustomFieldValue_fieldId_fkey",
+          "public",
+          "\"public\".\"employeeCustomFieldValue\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeCustomFieldValue_fieldId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeCustomFieldValue\"\nADD CONSTRAINT \"employeeCustomFieldValue_fieldId_fkey\"\nFOREIGN KEY (\"fieldId\")\nREFERENCES \"public\".\"employeeCustomField\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeCustomFieldValue_fieldId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeCustomFieldValue_fieldId_fkey",
+          "public",
+          "\"public\".\"employeeCustomFieldValue\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeDocument.employeeDocument_employeeId_fkey",
+    "label": "Add foreign key \"employeeDocument_employeeId_fkey\" on \"employeeDocument\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeDocument_employeeId_fkey",
+        "table": "employeeDocument"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeDocument_employeeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeDocument_employeeId_fkey",
+          "public",
+          "\"public\".\"employeeDocument\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeDocument_employeeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeDocument\"\nADD CONSTRAINT \"employeeDocument_employeeId_fkey\"\nFOREIGN KEY (\"employeeId\")\nREFERENCES \"public\".\"employee\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeDocument_employeeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeDocument_employeeId_fkey",
+          "public",
+          "\"public\".\"employeeDocument\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeDocument.employeeDocument_categoryId_fkey",
+    "label": "Add foreign key \"employeeDocument_categoryId_fkey\" on \"employeeDocument\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeDocument_categoryId_fkey",
+        "table": "employeeDocument"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeDocument_categoryId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeDocument_categoryId_fkey",
+          "public",
+          "\"public\".\"employeeDocument\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeDocument_categoryId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeDocument\"\nADD CONSTRAINT \"employeeDocument_categoryId_fkey\"\nFOREIGN KEY (\"categoryId\")\nREFERENCES \"public\".\"documentCategory\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeDocument_categoryId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeDocument_categoryId_fkey",
+          "public",
+          "\"public\".\"employeeDocument\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeDocument.employeeDocument_verifiedById_fkey",
+    "label": "Add foreign key \"employeeDocument_verifiedById_fkey\" on \"employeeDocument\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeDocument_verifiedById_fkey",
+        "table": "employeeDocument"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeDocument_verifiedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeDocument_verifiedById_fkey",
+          "public",
+          "\"public\".\"employeeDocument\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeDocument_verifiedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeDocument\"\nADD CONSTRAINT \"employeeDocument_verifiedById_fkey\"\nFOREIGN KEY (\"verifiedById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeDocument_verifiedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeDocument_verifiedById_fkey",
+          "public",
+          "\"public\".\"employeeDocument\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeDocument.employeeDocument_uploadedById_fkey",
+    "label": "Add foreign key \"employeeDocument_uploadedById_fkey\" on \"employeeDocument\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeDocument_uploadedById_fkey",
+        "table": "employeeDocument"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeDocument_uploadedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeDocument_uploadedById_fkey",
+          "public",
+          "\"public\".\"employeeDocument\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeDocument_uploadedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeDocument\"\nADD CONSTRAINT \"employeeDocument_uploadedById_fkey\"\nFOREIGN KEY (\"uploadedById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeDocument_uploadedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeDocument_uploadedById_fkey",
+          "public",
+          "\"public\".\"employeeDocument\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeExportJob.employeeExportJob_requestedById_fkey",
+    "label": "Add foreign key \"employeeExportJob_requestedById_fkey\" on \"employeeExportJob\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeExportJob_requestedById_fkey",
+        "table": "employeeExportJob"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeExportJob_requestedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeExportJob_requestedById_fkey",
+          "public",
+          "\"public\".\"employeeExportJob\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeExportJob_requestedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeExportJob\"\nADD CONSTRAINT \"employeeExportJob_requestedById_fkey\"\nFOREIGN KEY (\"requestedById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeExportJob_requestedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeExportJob_requestedById_fkey",
+          "public",
+          "\"public\".\"employeeExportJob\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeImportJob.employeeImportJob_templateId_fkey",
+    "label": "Add foreign key \"employeeImportJob_templateId_fkey\" on \"employeeImportJob\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeImportJob_templateId_fkey",
+        "table": "employeeImportJob"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeImportJob_templateId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeImportJob_templateId_fkey",
+          "public",
+          "\"public\".\"employeeImportJob\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeImportJob_templateId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeImportJob\"\nADD CONSTRAINT \"employeeImportJob_templateId_fkey\"\nFOREIGN KEY (\"templateId\")\nREFERENCES \"public\".\"importTemplate\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeImportJob_templateId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeImportJob_templateId_fkey",
+          "public",
+          "\"public\".\"employeeImportJob\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeImportJob.employeeImportJob_initiatedById_fkey",
+    "label": "Add foreign key \"employeeImportJob_initiatedById_fkey\" on \"employeeImportJob\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeImportJob_initiatedById_fkey",
+        "table": "employeeImportJob"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeImportJob_initiatedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeImportJob_initiatedById_fkey",
+          "public",
+          "\"public\".\"employeeImportJob\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeImportJob_initiatedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeImportJob\"\nADD CONSTRAINT \"employeeImportJob_initiatedById_fkey\"\nFOREIGN KEY (\"initiatedById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeImportJob_initiatedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeImportJob_initiatedById_fkey",
+          "public",
+          "\"public\".\"employeeImportJob\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeImportJob.employeeImportJob_confirmedById_fkey",
+    "label": "Add foreign key \"employeeImportJob_confirmedById_fkey\" on \"employeeImportJob\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeImportJob_confirmedById_fkey",
+        "table": "employeeImportJob"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeImportJob_confirmedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeImportJob_confirmedById_fkey",
+          "public",
+          "\"public\".\"employeeImportJob\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeImportJob_confirmedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeImportJob\"\nADD CONSTRAINT \"employeeImportJob_confirmedById_fkey\"\nFOREIGN KEY (\"confirmedById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeImportJob_confirmedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeImportJob_confirmedById_fkey",
+          "public",
+          "\"public\".\"employeeImportJob\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeImportRow.employeeImportRow_jobId_fkey",
+    "label": "Add foreign key \"employeeImportRow_jobId_fkey\" on \"employeeImportRow\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeImportRow_jobId_fkey",
+        "table": "employeeImportRow"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeImportRow_jobId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeImportRow_jobId_fkey",
+          "public",
+          "\"public\".\"employeeImportRow\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeImportRow_jobId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeImportRow\"\nADD CONSTRAINT \"employeeImportRow_jobId_fkey\"\nFOREIGN KEY (\"jobId\")\nREFERENCES \"public\".\"employeeImportJob\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeImportRow_jobId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeImportRow_jobId_fkey",
+          "public",
+          "\"public\".\"employeeImportRow\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeImportRow.employeeImportRow_employeeId_fkey",
+    "label": "Add foreign key \"employeeImportRow_employeeId_fkey\" on \"employeeImportRow\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeImportRow_employeeId_fkey",
+        "table": "employeeImportRow"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeImportRow_employeeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeImportRow_employeeId_fkey",
+          "public",
+          "\"public\".\"employeeImportRow\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeImportRow_employeeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeImportRow\"\nADD CONSTRAINT \"employeeImportRow_employeeId_fkey\"\nFOREIGN KEY (\"employeeId\")\nREFERENCES \"public\".\"employee\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeImportRow_employeeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeImportRow_employeeId_fkey",
+          "public",
+          "\"public\".\"employeeImportRow\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeOrgHistory.employeeOrgHistory_employeeId_fkey",
+    "label": "Add foreign key \"employeeOrgHistory_employeeId_fkey\" on \"employeeOrgHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeOrgHistory_employeeId_fkey",
+        "table": "employeeOrgHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeOrgHistory_employeeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeOrgHistory_employeeId_fkey",
+          "public",
+          "\"public\".\"employeeOrgHistory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeOrgHistory_employeeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeOrgHistory\"\nADD CONSTRAINT \"employeeOrgHistory_employeeId_fkey\"\nFOREIGN KEY (\"employeeId\")\nREFERENCES \"public\".\"employee\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeOrgHistory_employeeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeOrgHistory_employeeId_fkey",
+          "public",
+          "\"public\".\"employeeOrgHistory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employeeOrgHistory.employeeOrgHistory_changedById_fkey",
+    "label": "Add foreign key \"employeeOrgHistory_changedById_fkey\" on \"employeeOrgHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employeeOrgHistory_changedById_fkey",
+        "table": "employeeOrgHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employeeOrgHistory_changedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeOrgHistory_changedById_fkey",
+          "public",
+          "\"public\".\"employeeOrgHistory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employeeOrgHistory_changedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employeeOrgHistory\"\nADD CONSTRAINT \"employeeOrgHistory_changedById_fkey\"\nFOREIGN KEY (\"changedById\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employeeOrgHistory_changedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employeeOrgHistory_changedById_fkey",
+          "public",
+          "\"public\".\"employeeOrgHistory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employee.employee_employmentCategoryId_fkey",
+    "label": "Add foreign key \"employee_employmentCategoryId_fkey\" on \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employee_employmentCategoryId_fkey",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employee_employmentCategoryId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employee_employmentCategoryId_fkey",
+          "public",
+          "\"public\".\"employee\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employee_employmentCategoryId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employee\"\nADD CONSTRAINT \"employee_employmentCategoryId_fkey\"\nFOREIGN KEY (\"employmentCategoryId\")\nREFERENCES \"public\".\"employmentCategory\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employee_employmentCategoryId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employee_employmentCategoryId_fkey",
+          "public",
+          "\"public\".\"employee\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employee.employee_employmentTypeId_fkey",
+    "label": "Add foreign key \"employee_employmentTypeId_fkey\" on \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employee_employmentTypeId_fkey",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employee_employmentTypeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employee_employmentTypeId_fkey",
+          "public",
+          "\"public\".\"employee\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employee_employmentTypeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employee\"\nADD CONSTRAINT \"employee_employmentTypeId_fkey\"\nFOREIGN KEY (\"employmentTypeId\")\nREFERENCES \"public\".\"employmentType\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employee_employmentTypeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employee_employmentTypeId_fkey",
+          "public",
+          "\"public\".\"employee\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.importTemplateMapping.importTemplateMapping_templateId_fkey",
+    "label": "Add foreign key \"importTemplateMapping_templateId_fkey\" on \"importTemplateMapping\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "importTemplateMapping_templateId_fkey",
+        "table": "importTemplateMapping"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"importTemplateMapping_templateId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "importTemplateMapping_templateId_fkey",
+          "public",
+          "\"public\".\"importTemplateMapping\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"importTemplateMapping_templateId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"importTemplateMapping\"\nADD CONSTRAINT \"importTemplateMapping_templateId_fkey\"\nFOREIGN KEY (\"templateId\")\nREFERENCES \"public\".\"importTemplate\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"importTemplateMapping_templateId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "importTemplateMapping_templateId_fkey",
+          "public",
+          "\"public\".\"importTemplateMapping\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.designation.designation_jobGradeId_fkey",
+    "label": "Add foreign key \"designation_jobGradeId_fkey\" on \"designation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "designation_jobGradeId_fkey",
+        "table": "designation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"designation_jobGradeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "designation_jobGradeId_fkey",
+          "public",
+          "\"public\".\"designation\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"designation_jobGradeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"designation\"\nADD CONSTRAINT \"designation_jobGradeId_fkey\"\nFOREIGN KEY (\"jobGradeId\")\nREFERENCES \"public\".\"jobGrade\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"designation_jobGradeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "designation_jobGradeId_fkey",
+          "public",
+          "\"public\".\"designation\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.employee.employee_jobGradeId_fkey",
+    "label": "Add foreign key \"employee_jobGradeId_fkey\" on \"employee\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "employee_jobGradeId_fkey",
+        "table": "employee"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"employee_jobGradeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employee_jobGradeId_fkey",
+          "public",
+          "\"public\".\"employee\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"employee_jobGradeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"employee\"\nADD CONSTRAINT \"employee_jobGradeId_fkey\"\nFOREIGN KEY (\"jobGradeId\")\nREFERENCES \"public\".\"jobGrade\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"employee_jobGradeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "employee_jobGradeId_fkey",
+          "public",
+          "\"public\".\"employee\""
+        ]
+      }
+    ]
+  }
+]

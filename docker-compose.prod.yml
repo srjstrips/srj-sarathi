@@ -1,0 +1,104 @@
+version: '3.9'
+
+# SRJ Sarthi HRMS — production
+# All containers prefixed: srj_sarthi_*
+# Ports chosen to avoid conflicts with existing VPS services
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: srj_sarthi_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sarthi
+      POSTGRES_PASSWORD: sarthi_pass
+      POSTGRES_DB: sarthi_hrms
+    volumes:
+      - srj_sarthi_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U sarthi -d sarthi_hrms']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - srj_sarthi_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: srj_sarthi_redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning --requirepass sarthi_redis_pass
+    volumes:
+      - srj_sarthi_redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', 'sarthi_redis_pass', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - srj_sarthi_net
+
+  minio:
+    image: minio/minio:latest
+    container_name: srj_sarthi_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: sarthi_minio
+      MINIO_ROOT_PASSWORD: sarthi_minio_pass
+    volumes:
+      - srj_sarthi_minio_data:/data
+    ports:
+      - '9010:9000'
+      - '9011:9001'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - srj_sarthi_net
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://YOUR_VPS_IP:3001
+    image: srj_sarthi_web
+    container_name: srj_sarthi_web
+    restart: unless-stopped
+    ports:
+      - '3002:3002'
+    depends_on:
+      - api
+    networks:
+      - srj_sarthi_net
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: srj_sarthi_api
+    container_name: srj_sarthi_api
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    env_file:
+      - apps/api/.env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - srj_sarthi_net
+
+volumes:
+  srj_sarthi_postgres_data:
+  srj_sarthi_redis_data:
+  srj_sarthi_minio_data:
+
+networks:
+  srj_sarthi_net:
+    name: srj_sarthi_net
