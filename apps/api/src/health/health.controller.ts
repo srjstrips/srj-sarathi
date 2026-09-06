@@ -13,7 +13,7 @@ export class HealthController {
 
   private async dbPing(): Promise<HealthIndicatorResult> {
     try {
-      await this.prisma.orm.user.findFirst({ select: { id: true } });
+      await (this.prisma.orm as any).user.findFirst({ select: { id: true } });
       return { database: { status: 'up' } };
     } catch {
       return { database: { status: 'down' } };
