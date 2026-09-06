@@ -29,38 +29,38 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: 'WORK',
     items: [
-      { label: 'Tasks',         href: '/tasks',         icon: CheckSquare,    permission: 'task:view' },
-      { label: 'Projects',      href: '/projects',      icon: FolderKanban,   permission: 'project:view' },
-      { label: 'KRA',           href: '/kra',           icon: Target,         permission: 'kra:view' },
-      { label: 'Kaizen',        href: '/kaizen',        icon: Lightbulb,      permission: 'kaizen:view' },
+      { label: 'Tasks',         href: '/tasks',         icon: CheckSquare,    permission: 'tasks.view' },
+      { label: 'Projects',      href: '/projects',      icon: FolderKanban },
+      { label: 'KRA',           href: '/kra',           icon: Target,         permission: 'kra.view' },
+      { label: 'Kaizen',        href: '/kaizen',        icon: Lightbulb,      permission: 'kaizen.view' },
     ],
   },
   {
     title: 'PEOPLE',
     items: [
-      { label: 'Employees',     href: '/employees',     icon: Users,          permission: 'employee:view' },
-      { label: 'Organization',  href: '/organization',  icon: Building2,      permission: 'org:view' },
+      { label: 'Employees',     href: '/employees',     icon: Users,          permission: 'employees.view' },
+      { label: 'Organization',  href: '/organization',  icon: Building2,      permission: 'organization.view' },
     ],
   },
   {
     title: 'COMMUNICATION',
     items: [
-      { label: 'Announcements', href: '/announcements', icon: Megaphone,      permission: 'announcement:view' },
-      { label: 'Chat',          href: '/chat',          icon: MessageSquare,  permission: 'chat:view' },
+      { label: 'Announcements', href: '/announcements', icon: Megaphone,      permission: 'notices.view' },
+      { label: 'Chat',          href: '/chat',          icon: MessageSquare },
     ],
   },
   {
     title: 'MANAGEMENT',
     items: [
-      { label: 'Reports',       href: '/reports',       icon: BarChart3,      permission: 'report:view' },
+      { label: 'Reports',       href: '/reports',       icon: BarChart3,      permission: 'reports.view' },
     ],
   },
   {
     title: 'ADMIN',
     items: [
-      { label: 'Security',      href: '/security',      icon: Shield,         permission: 'security:view' },
-      { label: 'Access Control',href: '/access',        icon: Lock,           permission: 'access:view' },
-      { label: 'Settings',      href: '/settings',      icon: Settings,       permission: 'settings:view' },
+      { label: 'Security',      href: '/security',      icon: Shield,         permission: 'security.dashboard.view' },
+      { label: 'Access Control',href: '/access',        icon: Lock,           permission: 'roles.view' },
+      { label: 'Settings',      href: '/settings',      icon: Settings,       permission: 'settings.view' },
     ],
   },
 ];
