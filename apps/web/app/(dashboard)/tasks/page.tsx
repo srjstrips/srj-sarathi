@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { CheckSquare, Plus, Search, Filter, ChevronDown, X, Tag, Calendar, User, MoreHorizontal, Loader2, AlertCircle } from 'lucide-react';
 import { Circle, CheckCircle2, Clock, Eye } from 'lucide-react';
 import { tasksApi } from '../../../lib/api-client';
-import { useAuthStore } from '../../../store/auth.store';
 import { getErrorMessage } from '../../../lib/api';
 
 type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -38,16 +37,25 @@ const STATUS_CONFIG: Record<Status, { label: string; icon: React.ElementType; co
   DONE:        { label: 'Done',        icon: CheckCircle2, color: 'text-green-500' },
 };
 
+function toUiStatus(s: string): Status {
+  if (s === 'COMPLETED' || s === 'APPROVED') return 'DONE';
+  if (s === 'IN_PROGRESS' || s === 'ACKNOWLEDGED') return 'IN_PROGRESS';
+  if (s === 'SUBMITTED_FOR_REVIEW' || s === 'REWORK') return 'IN_REVIEW';
+  if (s === 'TODO' || s === 'DRAFT' || s === 'ASSIGNED' || s === 'PENDING') return 'TODO';
+  return 'TODO';
+}
+
 function normalizeTask(raw: any): Task {
   const dueDate = raw.dueDate ?? raw.due_date;
-  const isOverdue = dueDate ? new Date(dueDate) < new Date() && raw.status !== 'DONE' : false;
+  const status = toUiStatus(raw.status ?? 'TODO');
+  const isOverdue = dueDate ? new Date(dueDate) < new Date() && status !== 'DONE' : false;
   return {
     id:          raw.id,
     title:       raw.title,
     description: raw.description,
     project:     raw.project?.name ?? raw.projectName ?? (typeof raw.project === 'string' ? raw.project : undefined),
     priority:    raw.priority ?? 'MEDIUM',
-    status:      raw.status ?? 'TODO',
+    status,
     assignee:    raw.assignee?.name ?? raw.assigneeName ?? (typeof raw.assignee === 'string' ? raw.assignee : undefined),
     dueDate:     dueDate ? new Date(dueDate).toLocaleDateString('en-IN') : undefined,
     progress:    raw.progress ?? 0,
@@ -198,7 +206,6 @@ function NewTaskModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
 }
 
 export default function TasksPage() {
-  const user                              = useAuthStore(s => s.user);
   const [activeTab, setActiveTab]         = useState<Tab>('my');
   const [search, setSearch]               = useState('');
   const [showNewTask, setShowNewTask]     = useState(false);
@@ -211,21 +218,25 @@ export default function TasksPage() {
     setLoading(true);
     setError('');
     try {
-      const params: Record<string, unknown> = { limit: 100 };
-      if (activeTab === 'my' || activeTab === 'overdue') params['assigneeId'] = user?.id;
-      if (activeTab === 'completed') params['status'] = 'DONE';
-      const res  = await tasksApi.list(params as any);
-      const raw: any[] = res?.items ?? res ?? [];
+      let res: any;
+      if (activeTab === 'my' || activeTab === 'overdue') {
+        res = await tasksApi.myTasks();
+      } else if (activeTab === 'completed') {
+        res = await tasksApi.myTasks({ status: 'COMPLETED' });
+      } else {
+        res = await tasksApi.list();
+      }
+      const raw: any[] = res?.items ?? (Array.isArray(res) ? res : []);
       let normalized = raw.map(normalizeTask);
       if (activeTab === 'overdue')   normalized = normalized.filter(t => t.overdue && t.status !== 'DONE');
-      if (activeTab === 'completed') normalized = normalized.filter(t => t.status === 'DONE');
+      if (activeTab === 'completed') normalized = normalized.filter(t => t.status === 'DONE' || t.status === 'COMPLETED');
       setTasks(normalized);
     } catch (e) {
       setError(getErrorMessage(e));
     } finally {
       setLoading(false);
     }
-  }, [activeTab, user?.id]);
+  }, [activeTab]);
 
   useEffect(() => { load(); }, [load]);
 

@@ -168,8 +168,11 @@ export const notificationsApi = {
 // ─── Tasks (existing) ─────────────────────────────────────────────────────
 
 export const tasksApi = {
-  list: (params?: { status?: string; priority?: string; assigneeId?: string; page?: number; limit?: number }) =>
+  list: (params?: { status?: string; priority?: string; assigneeId?: string; taskType?: string }) =>
     api.get('/tasks', { params }).then(r => r.data.data ?? r.data),
+
+  myTasks: (params?: { status?: string; priority?: string }) =>
+    api.get('/tasks/my', { params }).then(r => r.data.data ?? r.data),
 
   getOne: (id: string) =>
     api.get(`/tasks/${id}`).then(r => r.data.data ?? r.data),
