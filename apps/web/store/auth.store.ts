@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthState>()(
       login: async (identifier, password) => {
         set({ isLoading: true });
         try {
-          const { data } = await api.post('/auth/login', { identifier, password });
+          const { data } = await api.post('/auth/login', { username: identifier, password });
           localStorage.setItem('access_token',  data.accessToken);
           localStorage.setItem('refresh_token', data.refreshToken);
           set({
