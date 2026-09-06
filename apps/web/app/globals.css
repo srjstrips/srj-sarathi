@@ -1,0 +1,200 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─── SRJ Sarathi Design Tokens ─────────────────────────────────────────── */
+:root {
+  /* Brand */
+  --primary:            #F97316;
+  --primary-hover:      #EA6C0A;
+  --primary-pressed:    #C85D08;
+  --primary-light:      #FEF3E8;
+  --primary-border:     #FDBA74;
+
+  /* Background */
+  --bg-page:            #F8F7F4;
+  --bg-surface:         #FFFFFF;
+  --bg-surface-hover:   #F4F3F0;
+  --bg-subtle:          #F1F0ED;
+
+  /* Text */
+  --text-primary:       #1A1A1A;
+  --text-secondary:     #4B4B4B;
+  --text-tertiary:      #757575;
+  --text-disabled:      #ABABAB;
+
+  /* Border */
+  --border-default:     #E2E0DC;
+  --border-strong:      #C4C1BA;
+  --border-focus:       #F97316;
+
+  /* Sidebar */
+  --sidebar-bg:         #1A1A1A;
+  --sidebar-text:       #D4D0C8;
+  --sidebar-text-hover: #FFFFFF;
+  --sidebar-active:     #F97316;
+  --sidebar-active-bg:  rgba(249,115,22,0.15);
+  --sidebar-section:    #6B6B6B;
+  --sidebar-width:      240px;
+  --sidebar-collapsed:  64px;
+
+  /* Semantic */
+  --success:            #16A34A;
+  --success-light:      #F0FDF4;
+  --warning:            #D97706;
+  --warning-light:      #FFFBEB;
+  --danger:             #DC2626;
+  --danger-light:       #FEF2F2;
+  --info:               #2563EB;
+  --info-light:         #EFF6FF;
+  --neutral:            #6B7280;
+  --neutral-light:      #F9FAFB;
+
+  /* Radius */
+  --radius-sm:          4px;
+  --radius-md:          8px;
+  --radius-lg:          12px;
+  --radius-xl:          16px;
+
+  /* shadcn overrides — map to our brand */
+  --background:         #F8F7F4;
+  --foreground:         #1A1A1A;
+  --card:               #FFFFFF;
+  --card-foreground:    #1A1A1A;
+  --popover:            #FFFFFF;
+  --popover-foreground: #1A1A1A;
+  --primary-shadcn:     #F97316;
+  --primary-foreground: #FFFFFF;
+  --secondary:          #F1F0ED;
+  --secondary-foreground: #1A1A1A;
+  --muted:              #F4F3F0;
+  --muted-foreground:   #757575;
+  --accent:             #FEF3E8;
+  --accent-foreground:  #C85D08;
+  --destructive:        #DC2626;
+  --border:             #E2E0DC;
+  --input:              #E2E0DC;
+  --ring:               #F97316;
+  --radius:             8px;
+
+  /* sidebar shadcn vars */
+  --sidebar:            #1A1A1A;
+  --sidebar-foreground: #D4D0C8;
+  --sidebar-primary:    #F97316;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent:     rgba(249,115,22,0.15);
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border:     rgba(255,255,255,0.08);
+  --sidebar-ring:       #F97316;
+}
+
+.dark {
+  --bg-page:            #111110;
+  --bg-surface:         #1C1C1A;
+  --bg-surface-hover:   #242422;
+  --bg-subtle:          #282826;
+  --text-primary:       #F0EDE8;
+  --text-secondary:     #B8B4AC;
+  --text-tertiary:      #7A776F;
+  --border-default:     #2E2C28;
+  --border-strong:      #3D3B36;
+
+  --background:         #111110;
+  --foreground:         #F0EDE8;
+  --card:               #1C1C1A;
+  --card-foreground:    #F0EDE8;
+  --popover:            #1C1C1A;
+  --popover-foreground: #F0EDE8;
+  --secondary:          #282826;
+  --secondary-foreground: #F0EDE8;
+  --muted:              #242422;
+  --muted-foreground:   #7A776F;
+  --accent:             rgba(249,115,22,0.12);
+  --accent-foreground:  #F97316;
+  --border:             #2E2C28;
+  --input:              #2E2C28;
+}
+
+@theme inline {
+  --color-background:   var(--background);
+  --color-foreground:   var(--foreground);
+  --color-primary:      var(--primary);
+  --font-sans:          var(--font-sans);
+}
+
+/* ─── Base styles ────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+/* Focus */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ─── Layout utilities ───────────────────────────────────────────────────── */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-page);
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  flex-shrink: 0;
+  transition: width 0.2s ease;
+}
+.sidebar.collapsed { width: var(--sidebar-collapsed); }
+
+.main-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  height: 56px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+
+.page-content {
+  flex: 1;
+  padding: 24px;
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 1023px) {
+  .page-content { padding: 16px; }
+}
+@media (max-width: 639px) {
+  .page-content { padding: 12px; }
+}
+
+/* ─── Status badge colors ────────────────────────────────────────────────── */
+.status-success { color: var(--success); background: var(--success-light); }
+.status-warning { color: var(--warning); background: var(--warning-light); }
+.status-danger  { color: var(--danger);  background: var(--danger-light);  }
+.status-info    { color: var(--info);    background: var(--info-light);    }
+.status-neutral { color: var(--neutral); background: var(--neutral-light); }
