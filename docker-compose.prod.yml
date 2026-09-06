@@ -2,7 +2,9 @@ version: '3.9'
 
 # SRJ Sarthi HRMS — production
 # All containers prefixed: srj_sarthi_*
-# Ports chosen to avoid conflicts with existing VPS services
+# Ports confirmed free on VPS (checked against live docker ps 2026-09-06):
+#   3001 → API, 3006 → Web, 9010/9011 → MinIO
+# Postgres & Redis are internal only (no host port exposure)
 
 services:
   postgres:
@@ -10,13 +12,13 @@ services:
     container_name: srj_sarthi_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: sarthi
-      POSTGRES_PASSWORD: sarthi_pass
-      POSTGRES_DB: sarthi_hrms
+      POSTGRES_USER: srj_sarthi
+      POSTGRES_PASSWORD: j5s5VpW_P9lBDo9ENLSzrPMQnXsIxp1e
+      POSTGRES_DB: srj_sarthi_hrms
     volumes:
       - srj_sarthi_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U sarthi -d sarthi_hrms']
+      test: ['CMD-SHELL', 'pg_isready -U srj_sarthi -d srj_sarthi_hrms']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,11 +29,11 @@ services:
     image: redis:7-alpine
     container_name: srj_sarthi_redis
     restart: unless-stopped
-    command: redis-server --save 60 1 --loglevel warning --requirepass sarthi_redis_pass
+    command: redis-server --save 60 1 --loglevel warning --requirepass He-Gtnap2lnJnmZ21RK4OTxYkWSnRFYa
     volumes:
       - srj_sarthi_redis_data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', '-a', 'sarthi_redis_pass', 'ping']
+      test: ['CMD', 'redis-cli', '-a', 'He-Gtnap2lnJnmZ21RK4OTxYkWSnRFYa', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -44,8 +46,8 @@ services:
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: sarthi_minio
-      MINIO_ROOT_PASSWORD: sarthi_minio_pass
+      MINIO_ROOT_USER: srj_sarthi_minio
+      MINIO_ROOT_PASSWORD: -BJGWs_1w9DtyBK0229MDbXyNJs8BSUv
     volumes:
       - srj_sarthi_minio_data:/data
     ports:
@@ -56,22 +58,6 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-    networks:
-      - srj_sarthi_net
-
-  web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: http://:3001
-    image: srj_sarthi_web
-    container_name: srj_sarthi_web
-    restart: unless-stopped
-    ports:
-      - '3006:3002'
-    depends_on:
-      - api
     networks:
       - srj_sarthi_net
 
@@ -91,6 +77,22 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    networks:
+      - srj_sarthi_net
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://YOUR_VPS_IP:3001
+    image: srj_sarthi_web
+    container_name: srj_sarthi_web
+    restart: unless-stopped
+    ports:
+      - '3006:3002'
+    depends_on:
+      - api
     networks:
       - srj_sarthi_net
 
