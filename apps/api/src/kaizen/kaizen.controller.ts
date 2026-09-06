@@ -27,25 +27,25 @@ export class KaizenCategoryController {
   constructor(private readonly kaizenService: KaizenService) {}
 
   @Get()
-  @RequirePermissions('kaizen:view')
+  @RequirePermissions('kaizen.view')
   list() {
     return this.kaizenService.listCategories();
   }
 
   @Post()
-  @RequirePermissions('kaizen:admin')
+  @RequirePermissions('kaizen.approve')
   create(@Body() dto: CreateCategoryDto) {
     return this.kaizenService.createCategory(dto);
   }
 
   @Patch(':id')
-  @RequirePermissions('kaizen:admin')
+  @RequirePermissions('kaizen.approve')
   update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
     return this.kaizenService.updateCategory(id, dto);
   }
 
   @Delete(':id')
-  @RequirePermissions('kaizen:admin')
+  @RequirePermissions('kaizen.approve')
   remove(@Param('id') id: string) {
     return this.kaizenService.deleteCategory(id);
   }
@@ -56,32 +56,32 @@ export class KaizenCategoryController {
 @ApiTags('Kaizens')
 @ApiBearerAuth()
 @UseGuards(AccessTokenGuard, PermissionsGuard)
-@Controller('kaizens')
+@Controller('kaizen')
 export class KaizenController {
   constructor(private readonly kaizenService: KaizenService) {}
 
   // ─── List / Dashboard ─────────────────────────────────────────────────────
 
   @Get()
-  @RequirePermissions('kaizen:view:all')
+  @RequirePermissions('kaizen.view')
   list(@Query() filter: KaizenFilterDto, @CurrentUser() actor: any) {
     return this.kaizenService.list(filter, actor.id);
   }
 
   @Get('my')
-  @RequirePermissions('kaizen:view')
+  @RequirePermissions('kaizen.view')
   myKaizens(@Query() filter: KaizenFilterDto, @CurrentUser() actor: any) {
     return this.kaizenService.myKaizens(actor.id, filter);
   }
 
   @Get('dashboard')
-  @RequirePermissions('kaizen:view')
+  @RequirePermissions('kaizen.view')
   dashboard(@CurrentUser() actor: any) {
     return this.kaizenService.getDashboard(actor.id);
   }
 
   @Get('analytics')
-  @RequirePermissions('kaizen:view:all')
+  @RequirePermissions('kaizen.view')
   analytics(@Query('companyId') companyId?: string) {
     return this.kaizenService.getAnalytics(companyId);
   }
@@ -89,50 +89,50 @@ export class KaizenController {
   // ─── Kaizen CRUD ──────────────────────────────────────────────────────────
 
   @Get(':id')
-  @RequirePermissions('kaizen:view')
+  @RequirePermissions('kaizen.view')
   get(@Param('id') id: string) {
     return this.kaizenService.get(id);
   }
 
   @Post()
-  @RequirePermissions('kaizen:create')
+  @RequirePermissions('kaizen.create')
   create(@Body() dto: CreateKaizenDto, @CurrentUser() actor: any) {
     return this.kaizenService.create(dto, actor.id);
   }
 
   @Patch(':id')
-  @RequirePermissions('kaizen:edit')
+  @RequirePermissions('kaizen.create')
   update(@Param('id') id: string, @Body() dto: UpdateKaizenDto, @CurrentUser() actor: any) {
     return this.kaizenService.update(id, dto, actor.id);
   }
 
   @Post(':id/submit')
-  @RequirePermissions('kaizen:create')
+  @RequirePermissions('kaizen.create')
   submit(@Param('id') id: string, @CurrentUser() actor: any) {
     return this.kaizenService.submit(id, actor.id);
   }
 
   @Post(':id/cancel')
-  @RequirePermissions('kaizen:edit')
+  @RequirePermissions('kaizen.create')
   cancel(@Param('id') id: string, @CurrentUser() actor: any) {
     return this.kaizenService.cancel(id, actor.id);
   }
 
   @Post(':id/archive')
-  @RequirePermissions('kaizen:admin')
+  @RequirePermissions('kaizen.approve')
   archive(@Param('id') id: string, @CurrentUser() actor: any) {
     return this.kaizenService.archive(id, actor.id);
   }
 
   @Post(':id/restore')
-  @RequirePermissions('kaizen:admin')
+  @RequirePermissions('kaizen.approve')
   restore(@Param('id') id: string, @CurrentUser() actor: any) {
     return this.kaizenService.restore(id, actor.id);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermissions('kaizen:edit')
+  @RequirePermissions('kaizen.create')
   remove(@Param('id') id: string, @CurrentUser() actor: any) {
     return this.kaizenService.softDelete(id, actor.id);
   }
@@ -140,13 +140,13 @@ export class KaizenController {
   // ─── Reviews ──────────────────────────────────────────────────────────────
 
   @Post(':id/hod-review')
-  @RequirePermissions('kaizen:review:hod')
+  @RequirePermissions('kaizen.approve')
   hodReview(@Param('id') id: string, @Body() dto: HodReviewDto, @CurrentUser() actor: any) {
     return this.kaizenService.hodReview(id, dto, actor.id);
   }
 
   @Post(':id/director-review')
-  @RequirePermissions('kaizen:review:director')
+  @RequirePermissions('kaizen.approve')
   directorReview(@Param('id') id: string, @Body() dto: DirectorReviewDto, @CurrentUser() actor: any) {
     return this.kaizenService.directorReview(id, dto, actor.id);
   }
@@ -154,19 +154,19 @@ export class KaizenController {
   // ─── Comments ─────────────────────────────────────────────────────────────
 
   @Get(':id/comments')
-  @RequirePermissions('kaizen:view')
+  @RequirePermissions('kaizen.view')
   listComments(@Param('id') id: string) {
     return this.kaizenService.listComments(id);
   }
 
   @Post(':id/comments')
-  @RequirePermissions('kaizen:view')
+  @RequirePermissions('kaizen.view')
   addComment(@Param('id') id: string, @Body() dto: AddCommentDto, @CurrentUser() actor: any) {
     return this.kaizenService.addComment(id, dto, actor.id);
   }
 
   @Patch(':id/comments/:commentId')
-  @RequirePermissions('kaizen:view')
+  @RequirePermissions('kaizen.view')
   updateComment(
     @Param('id') id: string,
     @Param('commentId') commentId: string,
@@ -177,7 +177,7 @@ export class KaizenController {
   }
 
   @Delete(':id/comments/:commentId')
-  @RequirePermissions('kaizen:view')
+  @RequirePermissions('kaizen.view')
   deleteComment(
     @Param('id') id: string,
     @Param('commentId') commentId: string,
@@ -189,20 +189,20 @@ export class KaizenController {
   // ─── Attachments ──────────────────────────────────────────────────────────
 
   @Get(':id/attachments')
-  @RequirePermissions('kaizen:view')
+  @RequirePermissions('kaizen.view')
   listAttachments(@Param('id') id: string) {
     return this.kaizenService.listAttachments(id);
   }
 
   @Post(':id/attachments')
-  @RequirePermissions('kaizen:edit')
+  @RequirePermissions('kaizen.create')
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20 * 1024 * 1024 } }))
   addAttachment(@Param('id') id: string, @UploadedFile() file: any, @CurrentUser() actor: any) {
     return this.kaizenService.addAttachment(id, file, actor.id);
   }
 
   @Delete(':id/attachments/:attachmentId')
-  @RequirePermissions('kaizen:edit')
+  @RequirePermissions('kaizen.create')
   deleteAttachment(
     @Param('id') id: string,
     @Param('attachmentId') attachmentId: string,
@@ -214,13 +214,13 @@ export class KaizenController {
   // ─── Implementation ───────────────────────────────────────────────────────
 
   @Get(':id/implementation')
-  @RequirePermissions('kaizen:view')
+  @RequirePermissions('kaizen.view')
   getImplementation(@Param('id') id: string) {
     return this.kaizenService.getImplementation(id);
   }
 
   @Post(':id/implementation')
-  @RequirePermissions('kaizen:implement')
+  @RequirePermissions('kaizen.approve')
   createImplementation(
     @Param('id') id: string,
     @Body() dto: CreateKaizenImplementationDto,
@@ -230,7 +230,7 @@ export class KaizenController {
   }
 
   @Patch(':id/implementation')
-  @RequirePermissions('kaizen:implement')
+  @RequirePermissions('kaizen.approve')
   updateImplementation(
     @Param('id') id: string,
     @Body() dto: UpdateKaizenImplementationDto,
@@ -240,7 +240,7 @@ export class KaizenController {
   }
 
   @Post(':id/close')
-  @RequirePermissions('kaizen:admin')
+  @RequirePermissions('kaizen.approve')
   closeKaizen(@Param('id') id: string, @CurrentUser() actor: any) {
     return this.kaizenService.closeKaizen(id, actor.id);
   }
@@ -248,19 +248,19 @@ export class KaizenController {
   // ─── Results ──────────────────────────────────────────────────────────────
 
   @Get(':id/results')
-  @RequirePermissions('kaizen:view')
+  @RequirePermissions('kaizen.view')
   listResults(@Param('id') id: string) {
     return this.kaizenService.listResults(id);
   }
 
   @Post(':id/results')
-  @RequirePermissions('kaizen:implement')
+  @RequirePermissions('kaizen.approve')
   addResult(@Param('id') id: string, @Body() dto: AddKaizenResultDto, @CurrentUser() actor: any) {
     return this.kaizenService.addResult(id, dto, actor.id);
   }
 
   @Delete(':id/results/:resultId')
-  @RequirePermissions('kaizen:implement')
+  @RequirePermissions('kaizen.approve')
   deleteResult(
     @Param('id') id: string,
     @Param('resultId') resultId: string,
@@ -272,7 +272,7 @@ export class KaizenController {
   // ─── Activity ─────────────────────────────────────────────────────────────
 
   @Get(':id/activity')
-  @RequirePermissions('kaizen:view')
+  @RequirePermissions('kaizen.view')
   getActivity(@Param('id') id: string) {
     return this.kaizenService.getActivity(id);
   }

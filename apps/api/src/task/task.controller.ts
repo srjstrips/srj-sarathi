@@ -26,19 +26,19 @@ export class TaskController {
   // ─── List / Search ────────────────────────────────────────────────────────
 
   @Get()
-  @RequirePermissions('task:view:all')
+  @RequirePermissions('tasks.view')
   list(@Query() filter: TaskFilterDto, @CurrentUser() actor: any) {
     return this.taskService.list(filter, actor.id);
   }
 
   @Get('my')
-  @RequirePermissions('task:view')
+  @RequirePermissions('tasks.view')
   myTasks(@Query() filter: TaskFilterDto, @CurrentUser() actor: any) {
     return this.taskService.myTasks(actor.id, filter);
   }
 
   @Get('analytics')
-  @RequirePermissions('task:view:all')
+  @RequirePermissions('tasks.view')
   analytics(@Query('companyId') companyId?: string) {
     return this.taskService.getAnalytics(companyId);
   }
@@ -46,56 +46,56 @@ export class TaskController {
   // ─── Task CRUD ────────────────────────────────────────────────────────────
 
   @Get(':id')
-  @RequirePermissions('task:view')
+  @RequirePermissions('tasks.view')
   get(@Param('id') id: string) {
     return this.taskService.get(id);
   }
 
   @Post()
-  @RequirePermissions('task:create')
+  @RequirePermissions('tasks.create')
   create(@Body() dto: CreateTaskDto, @CurrentUser() actor: any) {
     return this.taskService.create(dto, actor.id);
   }
 
   @Patch(':id')
-  @RequirePermissions('task:edit')
+  @RequirePermissions('tasks.create')
   update(@Param('id') id: string, @Body() dto: UpdateTaskDto, @CurrentUser() actor: any) {
     return this.taskService.update(id, dto, actor.id);
   }
 
   @Patch(':id/status')
-  @RequirePermissions('task:edit')
+  @RequirePermissions('tasks.complete')
   updateStatus(@Param('id') id: string, @Body() dto: UpdateTaskStatusDto, @CurrentUser() actor: any) {
     return this.taskService.updateStatus(id, dto, actor.id);
   }
 
   @Patch(':id/progress')
-  @RequirePermissions('task:edit')
+  @RequirePermissions('tasks.complete')
   updateProgress(@Param('id') id: string, @Body() dto: UpdateTaskProgressDto, @CurrentUser() actor: any) {
     return this.taskService.updateProgress(id, dto, actor.id);
   }
 
   @Post(':id/duplicate')
-  @RequirePermissions('task:create')
+  @RequirePermissions('tasks.create')
   duplicate(@Param('id') id: string, @CurrentUser() actor: any) {
     return this.taskService.duplicate(id, actor.id);
   }
 
   @Post(':id/archive')
-  @RequirePermissions('task:archive')
+  @RequirePermissions('tasks.create')
   archive(@Param('id') id: string, @CurrentUser() actor: any) {
     return this.taskService.archive(id, actor.id);
   }
 
   @Post(':id/restore')
-  @RequirePermissions('task:archive')
+  @RequirePermissions('tasks.create')
   restore(@Param('id') id: string, @CurrentUser() actor: any) {
     return this.taskService.restore(id, actor.id);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermissions('task:delete')
+  @RequirePermissions('tasks.create')
   remove(@Param('id') id: string, @CurrentUser() actor: any) {
     return this.taskService.softDelete(id, actor.id);
   }
@@ -103,19 +103,19 @@ export class TaskController {
   // ─── Assignees ────────────────────────────────────────────────────────────
 
   @Post(':id/assign')
-  @RequirePermissions('task:assign')
+  @RequirePermissions('tasks.assign')
   assign(@Param('id') id: string, @Body() dto: AssignTaskDto, @CurrentUser() actor: any) {
     return this.taskService.assign(id, dto, actor.id);
   }
 
   @Delete(':id/assignees/:userId')
-  @RequirePermissions('task:assign')
+  @RequirePermissions('tasks.assign')
   unassign(@Param('id') id: string, @Param('userId') userId: string, @CurrentUser() actor: any) {
     return this.taskService.unassign(id, userId, actor.id);
   }
 
   @Post(':id/acknowledge')
-  @RequirePermissions('task:view')
+  @RequirePermissions('tasks.view')
   acknowledge(@Param('id') id: string, @CurrentUser() actor: any) {
     return this.taskService.acknowledge(id, actor.id);
   }
@@ -123,19 +123,19 @@ export class TaskController {
   // ─── Checklists ───────────────────────────────────────────────────────────
 
   @Get(':id/checklists')
-  @RequirePermissions('task:view')
+  @RequirePermissions('tasks.view')
   getChecklists(@Param('id') id: string) {
     return this.taskService.getChecklists(id);
   }
 
   @Post(':id/checklists')
-  @RequirePermissions('task:edit')
+  @RequirePermissions('tasks.complete')
   addChecklistItem(@Param('id') id: string, @Body() dto: AddChecklistItemDto, @CurrentUser() actor: any) {
     return this.taskService.addChecklistItem(id, dto, actor.id);
   }
 
   @Patch(':id/checklists/:itemId')
-  @RequirePermissions('task:edit')
+  @RequirePermissions('tasks.complete')
   updateChecklistItem(
     @Param('id') id: string,
     @Param('itemId') itemId: string,
@@ -146,7 +146,7 @@ export class TaskController {
   }
 
   @Delete(':id/checklists/:itemId')
-  @RequirePermissions('task:edit')
+  @RequirePermissions('tasks.complete')
   deleteChecklistItem(
     @Param('id') id: string,
     @Param('itemId') itemId: string,
@@ -158,19 +158,19 @@ export class TaskController {
   // ─── Comments ─────────────────────────────────────────────────────────────
 
   @Get(':id/comments')
-  @RequirePermissions('task:view')
+  @RequirePermissions('tasks.view')
   listComments(@Param('id') id: string) {
     return this.taskService.listComments(id);
   }
 
   @Post(':id/comments')
-  @RequirePermissions('task:comment')
+  @RequirePermissions('tasks.view')
   addComment(@Param('id') id: string, @Body() dto: AddCommentDto, @CurrentUser() actor: any) {
     return this.taskService.addComment(id, dto, actor.id);
   }
 
   @Patch(':id/comments/:commentId')
-  @RequirePermissions('task:comment')
+  @RequirePermissions('tasks.view')
   updateComment(
     @Param('id') id: string,
     @Param('commentId') commentId: string,
@@ -181,7 +181,7 @@ export class TaskController {
   }
 
   @Delete(':id/comments/:commentId')
-  @RequirePermissions('task:comment')
+  @RequirePermissions('tasks.view')
   deleteComment(
     @Param('id') id: string,
     @Param('commentId') commentId: string,
@@ -193,20 +193,20 @@ export class TaskController {
   // ─── Attachments ──────────────────────────────────────────────────────────
 
   @Get(':id/attachments')
-  @RequirePermissions('task:view')
+  @RequirePermissions('tasks.view')
   listAttachments(@Param('id') id: string) {
     return this.taskService.listAttachments(id);
   }
 
   @Post(':id/attachments')
-  @RequirePermissions('task:attach')
+  @RequirePermissions('tasks.create')
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }))
   addAttachment(@Param('id') id: string, @UploadedFile() file: any, @CurrentUser() actor: any) {
     return this.taskService.addAttachment(id, file, actor.id);
   }
 
   @Delete(':id/attachments/:attachmentId')
-  @RequirePermissions('task:attach')
+  @RequirePermissions('tasks.create')
   deleteAttachment(
     @Param('id') id: string,
     @Param('attachmentId') attachmentId: string,
@@ -218,19 +218,19 @@ export class TaskController {
   // ─── Dependencies ─────────────────────────────────────────────────────────
 
   @Get(':id/dependencies')
-  @RequirePermissions('task:view')
+  @RequirePermissions('tasks.view')
   listDependencies(@Param('id') id: string) {
     return this.taskService.listDependencies(id);
   }
 
   @Post(':id/dependencies')
-  @RequirePermissions('task:edit')
+  @RequirePermissions('tasks.create')
   addDependency(@Param('id') id: string, @Body() dto: AddDependencyDto, @CurrentUser() actor: any) {
     return this.taskService.addDependency(id, dto, actor.id);
   }
 
   @Delete(':id/dependencies/:depId')
-  @RequirePermissions('task:edit')
+  @RequirePermissions('tasks.create')
   removeDependency(@Param('id') id: string, @Param('depId') depId: string, @CurrentUser() actor: any) {
     return this.taskService.removeDependency(id, depId, actor.id);
   }
@@ -238,13 +238,13 @@ export class TaskController {
   // ─── Watchers ─────────────────────────────────────────────────────────────
 
   @Post(':id/watch')
-  @RequirePermissions('task:view')
+  @RequirePermissions('tasks.view')
   watch(@Param('id') id: string, @CurrentUser() actor: any) {
     return this.taskService.watch(id, actor.id);
   }
 
   @Delete(':id/watch')
-  @RequirePermissions('task:view')
+  @RequirePermissions('tasks.view')
   unwatch(@Param('id') id: string, @CurrentUser() actor: any) {
     return this.taskService.unwatch(id, actor.id);
   }
@@ -252,13 +252,13 @@ export class TaskController {
   // ─── Reminders ────────────────────────────────────────────────────────────
 
   @Post(':id/reminders')
-  @RequirePermissions('task:view')
+  @RequirePermissions('tasks.view')
   addReminder(@Param('id') id: string, @Body() dto: AddReminderDto, @CurrentUser() actor: any) {
     return this.taskService.addReminder(id, dto, actor.id);
   }
 
   @Delete(':id/reminders/:reminderId')
-  @RequirePermissions('task:view')
+  @RequirePermissions('tasks.view')
   deleteReminder(
     @Param('id') id: string,
     @Param('reminderId') reminderId: string,
@@ -270,7 +270,7 @@ export class TaskController {
   // ─── Activity ─────────────────────────────────────────────────────────────
 
   @Get(':id/activity')
-  @RequirePermissions('task:view')
+  @RequirePermissions('tasks.view')
   getActivity(@Param('id') id: string) {
     return this.taskService.getActivity(id);
   }

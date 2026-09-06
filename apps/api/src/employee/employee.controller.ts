@@ -25,7 +25,7 @@ export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
   @Get()
-  @RequirePermissions('employee:read')
+  @RequirePermissions('employees.view')
   list(
     @Query() query: EmployeeListQueryDto,
     @Query('limit',  new DefaultValuePipe(50),  ParseIntPipe) limit: number,
@@ -35,25 +35,25 @@ export class EmployeeController {
   }
 
   @Get(':id')
-  @RequirePermissions('employee:read')
+  @RequirePermissions('employees.view')
   get(@Param('id', ParseUUIDPipe) id: string) {
     return this.employeeService.get(id);
   }
 
   @Get('code/:code')
-  @RequirePermissions('employee:read')
+  @RequirePermissions('employees.view')
   getByCode(@Param('code') code: string) {
     return this.employeeService.getByCode(code);
   }
 
   @Post()
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   create(@Body() dto: CreateEmployeeDto, @CurrentUser() actor: any) {
     return this.employeeService.create(dto, actor.id);
   }
 
   @Patch(':id')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateEmployeeDto,
@@ -63,7 +63,7 @@ export class EmployeeController {
   }
 
   @Post(':id/transfer')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   transfer(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: TransferEmployeeDto,
@@ -73,7 +73,7 @@ export class EmployeeController {
   }
 
   @Post(':id/exit')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   exit(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: ExitEmployeeDto,
@@ -83,7 +83,7 @@ export class EmployeeController {
   }
 
   @Post(':id/rehire')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   rehire(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('joiningDate') joiningDate: string,
@@ -93,7 +93,7 @@ export class EmployeeController {
   }
 
   @Patch(':id/manager')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   assignManager(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AssignManagerDto,
@@ -103,26 +103,26 @@ export class EmployeeController {
   }
 
   @Delete(':id')
-  @RequirePermissions('employee:delete')
+  @RequirePermissions('employees.view')
   @HttpCode(HttpStatus.NO_CONTENT)
   softDelete(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() actor: any) {
     return this.employeeService.softDelete(id, actor.id);
   }
 
   @Get(':id/direct-reports')
-  @RequirePermissions('employee:read')
+  @RequirePermissions('employees.view')
   directReports(@Param('id', ParseUUIDPipe) id: string) {
     return this.employeeService.getDirectReports(id);
   }
 
   @Get(':id/reporting-chain')
-  @RequirePermissions('employee:read')
+  @RequirePermissions('employees.view')
   reportingChain(@Param('id', ParseUUIDPipe) id: string) {
     return this.employeeService.getReportingChain(id);
   }
 
   @Get(':id/org-history')
-  @RequirePermissions('employee:read')
+  @RequirePermissions('employees.view')
   orgHistory(@Param('id', ParseUUIDPipe) id: string) {
     return this.employeeService.getOrgHistory(id);
   }
@@ -130,13 +130,13 @@ export class EmployeeController {
   // ─── User binding ──────────────────────────────────────────────────────────
 
   @Post(':id/bind-user')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   bindUser(@Param('id', ParseUUIDPipe) id: string, @Body() dto: BindUserDto) {
     return this.employeeService.bindUser(id, dto);
   }
 
   @Post(':id/unbind-user')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   @HttpCode(HttpStatus.NO_CONTENT)
   unbindUser(@Param('id', ParseUUIDPipe) id: string) {
     return this.employeeService.unbindUser(id);
@@ -145,13 +145,13 @@ export class EmployeeController {
   // ─── Emergency contacts ────────────────────────────────────────────────────
 
   @Get(':id/emergency-contacts')
-  @RequirePermissions('employee:read')
+  @RequirePermissions('employees.view')
   listEmergencyContacts(@Param('id', ParseUUIDPipe) id: string) {
     return this.employeeService.listEmergencyContacts(id);
   }
 
   @Post(':id/emergency-contacts')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   addEmergencyContact(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: CreateEmergencyContactDto,
@@ -160,7 +160,7 @@ export class EmployeeController {
   }
 
   @Patch(':id/emergency-contacts/:contactId')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   updateEmergencyContact(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('contactId', ParseUUIDPipe) contactId: string,
@@ -170,7 +170,7 @@ export class EmployeeController {
   }
 
   @Delete(':id/emergency-contacts/:contactId')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteEmergencyContact(
     @Param('id', ParseUUIDPipe) id: string,
@@ -182,13 +182,13 @@ export class EmployeeController {
   // ─── Bank detail ───────────────────────────────────────────────────────────
 
   @Get(':id/bank-detail')
-  @RequirePermissions('employee:read:sensitive')
+  @RequirePermissions('employees.view')
   getBankDetail(@Param('id', ParseUUIDPipe) id: string) {
     return this.employeeService.getBankDetail(id);
   }
 
   @Post(':id/bank-detail')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   upsertBankDetail(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpsertBankDetailDto,
@@ -197,7 +197,7 @@ export class EmployeeController {
   }
 
   @Post(':id/bank-detail/verify')
-  @RequirePermissions('employee:verify')
+  @RequirePermissions('employees.view')
   verifyBankDetail(@Param('id', ParseUUIDPipe) id: string) {
     return this.employeeService.verifyBankDetail(id);
   }
@@ -205,13 +205,13 @@ export class EmployeeController {
   // ─── Documents ─────────────────────────────────────────────────────────────
 
   @Get(':id/documents')
-  @RequirePermissions('employee:read')
+  @RequirePermissions('employees.view')
   listDocuments(@Param('id', ParseUUIDPipe) id: string) {
     return this.employeeService.listDocuments(id);
   }
 
   @Post(':id/documents')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   uploadDocument(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UploadDocumentDto,
@@ -221,7 +221,7 @@ export class EmployeeController {
   }
 
   @Post(':id/documents/:docId/verify')
-  @RequirePermissions('employee:verify')
+  @RequirePermissions('employees.view')
   verifyDocument(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('docId', ParseUUIDPipe) docId: string,
@@ -232,7 +232,7 @@ export class EmployeeController {
   }
 
   @Delete(':id/documents/:docId')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteDocument(
     @Param('id', ParseUUIDPipe) id: string,
@@ -244,13 +244,13 @@ export class EmployeeController {
   // ─── Custom field values ───────────────────────────────────────────────────
 
   @Get(':id/custom-fields')
-  @RequirePermissions('employee:read')
+  @RequirePermissions('employees.view')
   getCustomFieldValues(@Param('id', ParseUUIDPipe) id: string) {
     return this.employeeService.getEmployeeCustomFieldValues(id);
   }
 
   @Post(':id/custom-fields')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   setCustomFieldValue(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: SetCustomFieldValueDto,
@@ -261,7 +261,7 @@ export class EmployeeController {
   // ─── Search ────────────────────────────────────────────────────────────────
 
   @Get('search')
-  @RequirePermissions('employee:read')
+  @RequirePermissions('employees.view')
   search(@Query() dto: EmployeeSearchDto) {
     return this.employeeService.search(dto);
   }
@@ -269,19 +269,19 @@ export class EmployeeController {
   // ─── Bulk operations ───────────────────────────────────────────────────────
 
   @Post('bulk/status')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   bulkUpdateStatus(@Body() dto: BulkUpdateStatusDto, @CurrentUser() actor: any) {
     return this.employeeService.bulkUpdateStatus(dto, actor.id);
   }
 
   @Post('bulk/transfer')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   bulkTransfer(@Body() dto: BulkTransferDto, @CurrentUser() actor: any) {
     return this.employeeService.bulkTransfer(dto, actor.id);
   }
 
   @Post('bulk/assign-manager')
-  @RequirePermissions('employee:write')
+  @RequirePermissions('employees.view')
   bulkAssignManager(@Body() dto: BulkAssignManagerDto, @CurrentUser() actor: any) {
     return this.employeeService.bulkAssignManager(dto, actor.id);
   }
@@ -289,7 +289,7 @@ export class EmployeeController {
   // ─── Effective access viewer ───────────────────────────────────────────────
 
   @Get(':id/effective-access')
-  @RequirePermissions('employee:read')
+  @RequirePermissions('employees.view')
   effectiveAccess(@Param('id', ParseUUIDPipe) id: string) {
     return this.employeeService.getEffectiveAccess(id);
   }
@@ -305,19 +305,19 @@ export class DocumentCategoryController {
   constructor(private readonly employeeService: EmployeeService) {}
 
   @Get()
-  @RequirePermissions('org:read')
+  @RequirePermissions('organization.view')
   list() { return this.employeeService.listDocumentCategories(); }
 
   @Get(':id')
-  @RequirePermissions('org:read')
+  @RequirePermissions('organization.view')
   get(@Param('id', ParseUUIDPipe) id: string) { return this.employeeService.getDocumentCategory(id); }
 
   @Post()
-  @RequirePermissions('org:write')
+  @RequirePermissions('organization.view')
   create(@Body() dto: any) { return this.employeeService.createDocumentCategory(dto); }
 
   @Patch(':id')
-  @RequirePermissions('org:write')
+  @RequirePermissions('organization.view')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: any) {
     return this.employeeService.updateDocumentCategory(id, dto);
   }
@@ -332,17 +332,17 @@ export class CustomFieldController {
   constructor(private readonly employeeService: EmployeeService) {}
 
   @Get()
-  @RequirePermissions('org:read')
+  @RequirePermissions('organization.view')
   list() { return this.employeeService.listCustomFields(); }
 
   @Post()
-  @RequirePermissions('org:write')
+  @RequirePermissions('organization.view')
   create(@Body() dto: CreateCustomFieldDto) {
     return this.employeeService.createCustomField(dto);
   }
 
   @Patch(':id')
-  @RequirePermissions('org:write')
+  @RequirePermissions('organization.view')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateCustomFieldDto) {
     return this.employeeService.updateCustomField(id, dto);
   }
