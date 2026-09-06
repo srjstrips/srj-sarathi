@@ -1,6 +1,6 @@
 'use client';
 import { useAuthStore } from '@/store/auth.store';
-import { CheckSquare, FolderKanban, Megaphone, Lightbulb, Users, TrendingUp } from 'lucide-react';
+import { CheckSquare, FolderKanban, Megaphone, Lightbulb, Users, TrendingUp, ArrowRight, Clock, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 function StatCard({ label, value, sub, icon: Icon, href, color }: {
@@ -75,14 +75,26 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Coming soon banner */}
-      <div className="bg-orange-50 border border-orange-200 rounded-xl p-5 flex items-center gap-4">
-        <TrendingUp size={32} className="text-orange-500 flex-shrink-0" />
-        <div>
-          <p className="font-semibold text-[#1A1A1A]">Dashboard analytics coming soon</p>
-          <p className="text-sm text-[#757575] mt-0.5">
-            Attendance trends, KRA overview, project health and more will appear here once data is available.
-          </p>
+      {/* Attention items */}
+      <div className="bg-white rounded-xl border border-[#E2E0DC] p-5">
+        <h2 className="font-semibold text-[#1A1A1A] mb-4 flex items-center gap-2">
+          <AlertTriangle size={16} className="text-orange-500" />Needs Attention
+        </h2>
+        <div className="space-y-3">
+          {[
+            { label: '1 task overdue — Safety audit documentation', href: '/tasks', icon: Clock, color: 'text-red-500 bg-red-50' },
+            { label: 'KRA self-assessment due by 30 Sep 2026', href: '/kra', icon: TrendingUp, color: 'text-orange-500 bg-orange-50' },
+            { label: '2 announcements require acknowledgement', href: '/announcements', icon: Megaphone, color: 'text-purple-500 bg-purple-50' },
+          ].map(item => {
+            const Icon = item.icon;
+            return (
+              <Link key={item.href} href={item.href} className="flex items-center gap-3 p-3 rounded-lg border border-[#E2E0DC] hover:border-orange-200 transition-all group">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${item.color}`}><Icon size={15} /></div>
+                <p className="text-sm text-[#1A1A1A] flex-1">{item.label}</p>
+                <ArrowRight size={14} className="text-[#ABABAB] group-hover:text-orange-500 transition-colors" />
+              </Link>
+            );
+          })}
         </div>
       </div>
     </div>

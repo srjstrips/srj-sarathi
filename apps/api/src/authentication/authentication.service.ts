@@ -11,6 +11,7 @@ import * as argon2 from 'argon2';
 import { v4 as uuidv4 } from 'uuid';
 import { createHash } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { AuthorizationService } from '../authorization/authorization.service.js';
 import { now, toInstant } from '../common/utils/temporal.js';
 import type { LoginDto } from './dto/login.dto.js';
 import type { ChangePasswordDto } from './dto/change-password.dto.js';
@@ -30,6 +31,7 @@ export class AuthenticationService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    private readonly authz: AuthorizationService,
   ) {}
 
   async login(dto: LoginDto, ip: string, userAgent: string) {
@@ -192,27 +194,32 @@ export class AuthenticationService {
 
     if (!user) throw new UnauthorizedException();
 
-    const roles = await this.prisma.orm.public.UserRole
-      .where({ userId })
-      .include('role' as any)
-      .all();
+    const [roles, permissions] = await Promise.all([
+      this.authz.getUserRoles(userId),
+      this.authz.getUserPermissions(userId),
+    ]);
+
+    const emp = (user as any).employee;
 
     return {
       id: user.id,
       username: user.username,
       email: user.email,
       status: user.status,
-      employee: (user as any).employee
+      employee: emp
         ? {
-            id: (user as any).employee.id,
-            employeeCode: (user as any).employee.employeeCode,
-            firstName: (user as any).employee.firstName,
-            lastName: (user as any).employee.lastName,
-            displayName: (user as any).employee.displayName,
-            profilePicUrl: (user as any).employee.profilePicUrl,
+            id: emp.id,
+            employeeCode: emp.employeeCode,
+            firstName: emp.firstName,
+            lastName: emp.lastName,
+            displayName: emp.displayName,
+            profilePicUrl: emp.profilePicUrl,
+            companyId: emp.companyId,
+            departmentId: emp.departmentId,
           }
         : null,
-      roles: (roles as any[]).map((ur: any) => ur.role.name),
+      roles,
+      permissions,
     };
   }
 
