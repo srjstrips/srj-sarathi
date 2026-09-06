@@ -93,10 +93,15 @@ export class AttendanceService {
     const fromDate = new Date(year, month - 1, 1);
     const toDate   = new Date(year, month,     0);
 
-    return this.prisma.orm.public.Attendance
+    const all = await this.prisma.orm.public.Attendance
       .where({ employeeId } as any)
       .orderBy(m => (m as any).date.asc())
       .all();
+
+    return all.filter((r: any) => {
+      const d = new Date(r.date);
+      return d >= fromDate && d <= toDate;
+    });
   }
 
   // ─── Regularization ───────────────────────────────────────────────────────
@@ -207,10 +212,13 @@ export class AttendanceService {
   // ─── Holidays ─────────────────────────────────────────────────────────────
 
   async listHolidays(year?: number) {
-    return this.prisma.orm.public.Holiday
+    const all = await this.prisma.orm.public.Holiday
       .where({} as any)
       .orderBy(m => (m as any).date.asc())
       .all();
+
+    if (!year) return all;
+    return all.filter((h: any) => new Date(h.date).getFullYear() === year);
   }
 
   async createHoliday(dto: CreateHolidayDto) {

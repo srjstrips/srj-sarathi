@@ -118,7 +118,7 @@ export class KraService {
     if (existing) {
       await this.prisma.orm.public.KraRating
         .where({ objectiveId, raterType } as any)
-        .update({ rating: dto.rating as any, remarks: dto.remarks ?? null } as any);
+        .update({ rating: dto.rating as any, remarks: dto.remarks ?? null, ratedAt: now() as any } as any);
       return this.prisma.orm.public.KraRating.where({ objectiveId, raterType } as any).first();
     }
 

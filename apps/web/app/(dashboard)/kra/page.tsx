@@ -129,7 +129,7 @@ export default function KraPage() {
       const active = cyclesArr.find((c: any) => c.status === 'ACTIVE') ?? cyclesArr[0];
       setSelectedCycle(active ?? null);
       if (active) {
-        const objs = await kraApi.listObjectives({ cycleId: active.id, employeeId: user?.id });
+        const objs = await kraApi.listObjectives({ cycleId: active.id, employeeId: user?.employeeId });
         setObjectives(objs.items ?? objs ?? []);
       }
     } catch {
@@ -137,7 +137,7 @@ export default function KraPage() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.employeeId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -146,7 +146,7 @@ export default function KraPage() {
     setSelectedCycle(cycle ?? null);
     if (cycle) {
       try {
-        const objs = await kraApi.listObjectives({ cycleId, employeeId: user?.id });
+        const objs = await kraApi.listObjectives({ cycleId, employeeId: user?.employeeId });
         setObjectives(objs.items ?? objs ?? []);
       } catch {
         setObjectives([]);

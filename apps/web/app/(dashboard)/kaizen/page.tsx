@@ -1,35 +1,46 @@
-﻿'use client';
-import { useState } from 'react';
-import { Lightbulb, Plus, Search, ChevronRight, X, Check, Clock, AlertCircle, TrendingUp, IndianRupee } from 'lucide-react';
+'use client';
+import { useState, useEffect, useCallback } from 'react';
+import { Lightbulb, Plus, Search, ChevronRight, X, Check, Clock, AlertCircle, TrendingUp, IndianRupee, Loader2 } from 'lucide-react';
+import { kaizenApi } from '../../../lib/api-client';
+import { getErrorMessage } from '../../../lib/api';
 
 type KStatus = 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'IMPLEMENTED' | 'REJECTED';
 
 interface Kaizen {
-  id: string; title: string; problem: string; improvement: string; benefit: string;
-  status: KStatus; category: string; department: string; submittedBy: string;
-  submittedAt: string; expectedSaving?: number; actualSaving?: number;
+  id: string; title: string; problem: string; improvement?: string; benefit?: string;
+  status: KStatus; category?: string; department?: string; submittedBy?: string;
+  submittedAt?: string; expectedSaving?: number; actualSaving?: number;
 }
 
-const DEMO_KAIZEN: Kaizen[] = [
-  { id: '1', title: 'Reduce bearing replacement time by 40%', problem: 'Bearing replacement currently takes 4 hours due to manual disassembly', improvement: 'Use pneumatic tools and pre-staged spare kits for quick replacement', benefit: 'Reduce downtime by 2.5 hours per incident, improve production continuity', status: 'IMPLEMENTED', category: 'Efficiency', department: 'Maintenance', submittedBy: 'Rahul K.', submittedAt: '2026-08-01', expectedSaving: 45000, actualSaving: 52000 },
-  { id: '2', title: 'Eliminate manual billet count process', problem: 'Manual counting of billets takes 30 min per shift, prone to error', improvement: 'Install barcode scanner at exit point for automatic counting', benefit: 'Save 30 min per shift, 100% accuracy, eliminate recount waste', status: 'APPROVED', category: 'Automation', department: 'Production', submittedBy: 'Vikram J.', submittedAt: '2026-08-15', expectedSaving: 30000 },
-  { id: '3', title: 'Reuse cooling water for dust suppression', problem: 'Cooling water discharged to waste, dust suppression uses fresh water', improvement: 'Route cooling water discharge to dust suppression system', benefit: 'Save 20,000 litres/day, reduce water cost', status: 'UNDER_REVIEW', category: 'Environment', department: 'Operations', submittedBy: 'Deepak Y.', submittedAt: '2026-09-01', expectedSaving: 18000 },
-  { id: '4', title: 'Cross-train operators for multi-machine operation', problem: 'Each operator runs only one machine, idle time during breakdowns', improvement: 'Train each operator on 2 machines, enable flexible deployment', benefit: 'Reduce idle time by 60%, improve utilisation', status: 'SUBMITTED', category: 'People', department: 'Production', submittedBy: 'Amit S.', submittedAt: '2026-09-04' },
-  { id: '5', title: 'Digital checklist for quality inspection', problem: 'Paper checklists often misplaced, data entry delayed', improvement: 'Mobile app checklist with real-time submission', benefit: 'Eliminate paper, real-time data, faster reporting', status: 'SUBMITTED', category: 'Quality', department: 'Quality', submittedBy: 'Kavita S.', submittedAt: '2026-09-05' },
-];
-
 const STATUS_CFG: Record<KStatus, { label: string; icon: React.ElementType; color: string; bg: string }> = {
-  SUBMITTED:    { label: 'Submitted',     icon: Clock,        color: 'text-blue-600',   bg: 'bg-blue-50' },
-  UNDER_REVIEW: { label: 'Under Review',  icon: AlertCircle,  color: 'text-orange-600', bg: 'bg-orange-50' },
-  APPROVED:     { label: 'Approved',      icon: Check,        color: 'text-green-600',  bg: 'bg-green-50' },
-  IMPLEMENTED:  { label: 'Implemented',   icon: TrendingUp,   color: 'text-purple-600', bg: 'bg-purple-50' },
-  REJECTED:     { label: 'Rejected',      icon: X,            color: 'text-red-600',    bg: 'bg-red-50' },
+  SUBMITTED:    { label: 'Submitted',    icon: Clock,       color: 'text-blue-600',   bg: 'bg-blue-50' },
+  UNDER_REVIEW: { label: 'Under Review', icon: AlertCircle, color: 'text-orange-600', bg: 'bg-orange-50' },
+  APPROVED:     { label: 'Approved',     icon: Check,       color: 'text-green-600',  bg: 'bg-green-50' },
+  IMPLEMENTED:  { label: 'Implemented',  icon: TrendingUp,  color: 'text-purple-600', bg: 'bg-purple-50' },
+  REJECTED:     { label: 'Rejected',     icon: X,           color: 'text-red-600',    bg: 'bg-red-50' },
 };
 
 const STATUS_FLOW: KStatus[] = ['SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'IMPLEMENTED'];
 
+function normalizeKaizen(raw: any): Kaizen {
+  return {
+    id:             raw.id,
+    title:          raw.title,
+    problem:        raw.problem ?? raw.problemStatement ?? '',
+    improvement:    raw.improvement ?? raw.proposedImprovement,
+    benefit:        raw.benefit ?? raw.expectedBenefit,
+    status:         raw.status ?? 'SUBMITTED',
+    category:       raw.category?.name ?? raw.categoryName ?? raw.category,
+    department:     raw.department?.name ?? raw.departmentName ?? raw.department,
+    submittedBy:    raw.submittedBy?.name ?? raw.submittedByName ?? raw.submittedBy,
+    submittedAt:    raw.submittedAt ?? raw.createdAt ? new Date(raw.submittedAt ?? raw.createdAt).toLocaleDateString('en-IN') : undefined,
+    expectedSaving: raw.expectedSaving ?? raw.expectedSavings,
+    actualSaving:   raw.actualSaving   ?? raw.actualSavings,
+  };
+}
+
 function StatusBadge({ status }: { status: KStatus }) {
-  const cfg = STATUS_CFG[status];
+  const cfg = STATUS_CFG[status] ?? STATUS_CFG.SUBMITTED;
   const Icon = cfg.icon;
   return (
     <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.color}`}>
@@ -48,21 +59,20 @@ function KaizenCard({ kaizen, onClick }: { kaizen: Kaizen; onClick: () => void }
       <p className="text-xs text-[#757575] line-clamp-2 mb-3">{kaizen.problem}</p>
       <div className="flex items-center gap-2 flex-wrap mb-2">
         <StatusBadge status={kaizen.status} />
-        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{kaizen.category}</span>
-        <span className="text-xs text-[#ABABAB]">{kaizen.department}</span>
+        {kaizen.category && <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{kaizen.category}</span>}
+        {kaizen.department && <span className="text-xs text-[#ABABAB]">{kaizen.department}</span>}
       </div>
       <div className="flex items-center justify-between text-xs text-[#ABABAB]">
-        <span>{kaizen.submittedBy} · {kaizen.submittedAt}</span>
-        {kaizen.actualSaving && (
+        <span>{[kaizen.submittedBy, kaizen.submittedAt].filter(Boolean).join(' · ')}</span>
+        {kaizen.actualSaving ? (
           <span className="flex items-center gap-0.5 text-green-600 font-medium">
             <IndianRupee size={10} />{(kaizen.actualSaving / 1000).toFixed(0)}K saved
           </span>
-        )}
-        {!kaizen.actualSaving && kaizen.expectedSaving && (
+        ) : kaizen.expectedSaving ? (
           <span className="flex items-center gap-0.5 text-[#ABABAB]">
             <IndianRupee size={10} />{(kaizen.expectedSaving / 1000).toFixed(0)}K expected
           </span>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -75,11 +85,13 @@ function KaizenDetailPanel({ kaizen, onClose }: { kaizen: Kaizen; onClose: () =>
       <div className="absolute inset-0 bg-black/20" onClick={onClose} />
       <div className="relative bg-white w-full max-w-lg shadow-2xl flex flex-col overflow-hidden">
         <div className="flex items-center justify-between p-5 border-b border-[#E2E0DC]">
-          <div><StatusBadge status={kaizen.status} /><h2 className="text-lg font-bold text-[#1A1A1A] mt-1">{kaizen.title}</h2></div>
+          <div>
+            <StatusBadge status={kaizen.status} />
+            <h2 className="text-lg font-bold text-[#1A1A1A] mt-1">{kaizen.title}</h2>
+          </div>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 flex-shrink-0"><X size={18} /></button>
         </div>
 
-        {/* Progress steps */}
         <div className="px-5 pt-4 pb-3 border-b border-[#E2E0DC]">
           <div className="flex items-center justify-between">
             {STATUS_FLOW.map((s, i) => {
@@ -97,10 +109,12 @@ function KaizenDetailPanel({ kaizen, onClose }: { kaizen: Kaizen; onClose: () =>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div className="space-y-3">
-            {[['Problem / Current Condition', kaizen.problem, 'bg-red-50 border-red-100'],
-              ['Proposed Improvement', kaizen.improvement || 'Not specified', 'bg-blue-50 border-blue-100'],
-              ['Expected Benefit', kaizen.benefit || 'Not specified', 'bg-green-50 border-green-100']].map(([label, value, cls]) => (
-              <div key={String(label)} className={`p-4 rounded-xl border ${cls}`}>
+            {([
+              ['Problem / Current Condition', kaizen.problem, 'bg-red-50 border-red-100'],
+              ['Proposed Improvement', kaizen.improvement ?? 'Not specified', 'bg-blue-50 border-blue-100'],
+              ['Expected Benefit', kaizen.benefit ?? 'Not specified', 'bg-green-50 border-green-100'],
+            ] as [string, string, string][]).map(([label, value, cls]) => (
+              <div key={label} className={`p-4 rounded-xl border ${cls}`}>
                 <p className="text-xs font-semibold text-[#757575] uppercase tracking-wide mb-1.5">{label}</p>
                 <p className="text-sm text-[#1A1A1A]">{value}</p>
               </div>
@@ -108,9 +122,9 @@ function KaizenDetailPanel({ kaizen, onClose }: { kaizen: Kaizen; onClose: () =>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {[['Department', kaizen.department], ['Category', kaizen.category], ['Submitted By', kaizen.submittedBy], ['Date', kaizen.submittedAt]].map(([l, v]) => (
+            {[['Department', kaizen.department], ['Category', kaizen.category], ['Submitted By', kaizen.submittedBy], ['Date', kaizen.submittedAt]].map(([l, v]) => v ? (
               <div key={l} className="p-3 bg-[#F8F7F4] rounded-lg"><p className="text-xs text-[#ABABAB] mb-0.5">{l}</p><p className="text-sm font-medium text-[#1A1A1A]">{v}</p></div>
-            ))}
+            ) : null)}
           </div>
 
           {(kaizen.expectedSaving || kaizen.actualSaving) && (
@@ -130,21 +144,43 @@ function KaizenDetailPanel({ kaizen, onClose }: { kaizen: Kaizen; onClose: () =>
             </div>
           )}
         </div>
-
-        {(kaizen.status === 'SUBMITTED' || kaizen.status === 'UNDER_REVIEW') && (
-          <div className="p-4 border-t border-[#E2E0DC] flex gap-3">
-            <button className="flex-1 py-2 border border-red-200 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors">Reject</button>
-            <button className="flex-1 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">
-              {kaizen.status === 'SUBMITTED' ? 'Start Review' : 'Approve'}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
 }
 
-function NewKaizenModal({ onClose }: { onClose: () => void }) {
+function NewKaizenModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [title, setTitle]           = useState('');
+  const [problem, setProblem]       = useState('');
+  const [improvement, setImprove]   = useState('');
+  const [benefit, setBenefit]       = useState('');
+  const [category, setCategory]     = useState('Efficiency');
+  const [expectedSaving, setSaving] = useState('');
+  const [saving, setSavingState]    = useState(false);
+  const [error, setError]           = useState('');
+
+  const handleSubmit = async () => {
+    if (!title.trim() || !problem.trim()) { setError('Title and Problem are required'); return; }
+    setSavingState(true);
+    setError('');
+    try {
+      await kaizenApi.create({
+        title:          title.trim(),
+        problem:        problem.trim(),
+        improvement:    improvement.trim() || undefined,
+        benefit:        benefit.trim() || undefined,
+        category,
+        expectedSaving: expectedSaving ? Number(expectedSaving) : undefined,
+      });
+      onCreated();
+      onClose();
+    } catch (e) {
+      setError(getErrorMessage(e));
+    } finally {
+      setSavingState(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -153,18 +189,31 @@ function NewKaizenModal({ onClose }: { onClose: () => void }) {
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100"><X size={18} /></button>
         </div>
         <div className="p-5 space-y-4">
-          <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Title <span className="text-red-500">*</span></label><input autoFocus className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400" placeholder="Brief title of your improvement idea" /></div>
-          <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Problem / Current Condition <span className="text-red-500">*</span></label><textarea rows={3} className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 resize-none" placeholder="Describe the current problem or inefficiency..." /></div>
-          <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Proposed Improvement <span className="text-red-500">*</span></label><textarea rows={3} className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 resize-none" placeholder="What improvement do you suggest?" /></div>
-          <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Expected Benefit</label><textarea rows={2} className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 resize-none" placeholder="What benefit do you expect? (time, cost, quality, safety...)" /></div>
+          {error && <p className="text-sm text-red-500 bg-red-50 p-2 rounded-lg">{error}</p>}
+          <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Title <span className="text-red-500">*</span></label>
+            <input autoFocus value={title} onChange={e => setTitle(e.target.value)} className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400" placeholder="Brief title of your improvement idea" /></div>
+          <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Problem / Current Condition <span className="text-red-500">*</span></label>
+            <textarea rows={3} value={problem} onChange={e => setProblem(e.target.value)} className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 resize-none" placeholder="Describe the current problem or inefficiency..." /></div>
+          <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Proposed Improvement</label>
+            <textarea rows={3} value={improvement} onChange={e => setImprove(e.target.value)} className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 resize-none" placeholder="What improvement do you suggest?" /></div>
+          <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Expected Benefit</label>
+            <textarea rows={2} value={benefit} onChange={e => setBenefit(e.target.value)} className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 resize-none" placeholder="What benefit do you expect? (time, cost, quality, safety...)" /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Category</label><select className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/30"><option>Efficiency</option><option>Quality</option><option>Safety</option><option>Environment</option><option>Automation</option><option>People</option></select></div>
-            <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Expected Saving (₹)</label><input type="number" className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30" placeholder="e.g. 50000" /></div>
+            <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Category</label>
+              <select value={category} onChange={e => setCategory(e.target.value)} className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/30">
+                {['Efficiency','Quality','Safety','Environment','Automation','People'].map(c => <option key={c}>{c}</option>)}
+              </select></div>
+            <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Expected Saving (₹)</label>
+              <input type="number" value={expectedSaving} onChange={e => setSaving(e.target.value)} className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30" placeholder="e.g. 50000" /></div>
           </div>
         </div>
         <div className="flex items-center justify-end gap-3 p-5 border-t border-[#E2E0DC] sticky bottom-0 bg-white">
           <button onClick={onClose} className="px-4 py-2 text-sm text-[#757575] hover:text-[#1A1A1A]">Cancel</button>
-          <button className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">Submit Kaizen</button>
+          <button onClick={handleSubmit} disabled={saving}
+            className="flex items-center gap-2 px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50">
+            {saving && <Loader2 size={14} className="animate-spin" />}
+            Submit Kaizen
+          </button>
         </div>
       </div>
     </div>
@@ -172,17 +221,35 @@ function NewKaizenModal({ onClose }: { onClose: () => void }) {
 }
 
 export default function KaizenPage() {
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<KStatus | 'ALL'>('ALL');
-  const [selected, setSelected] = useState<Kaizen | null>(null);
-  const [showNew, setShowNew] = useState(false);
+  const [search, setSearch]       = useState('');
+  const [filter, setFilter]       = useState<KStatus | 'ALL'>('ALL');
+  const [selected, setSelected]   = useState<Kaizen | null>(null);
+  const [showNew, setShowNew]     = useState(false);
+  const [items, setItems]         = useState<Kaizen[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState('');
 
-  const filtered = DEMO_KAIZEN.filter(k =>
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res  = await kaizenApi.list({ limit: 100 });
+      const raw: any[] = res?.items ?? res ?? [];
+      setItems(raw.map(normalizeKaizen));
+    } catch (e) {
+      setError(getErrorMessage(e));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const filtered   = items.filter(k =>
     k.title.toLowerCase().includes(search.toLowerCase()) &&
     (filter === 'ALL' || k.status === filter)
   );
-
-  const totalSaved = DEMO_KAIZEN.filter(k => k.actualSaving).reduce((s, k) => s + (k.actualSaving ?? 0), 0);
+  const totalSaved = items.filter(k => k.actualSaving).reduce((s, k) => s + (k.actualSaving ?? 0), 0);
 
   return (
     <div className="space-y-4">
@@ -193,39 +260,49 @@ export default function KaizenPage() {
         </button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
-          ['Submitted', DEMO_KAIZEN.filter(k=>k.status==='SUBMITTED').length, 'bg-blue-50 text-blue-700'],
-          ['Under Review', DEMO_KAIZEN.filter(k=>k.status==='UNDER_REVIEW').length, 'bg-orange-50 text-orange-700'],
-          ['Approved', DEMO_KAIZEN.filter(k=>k.status==='APPROVED').length, 'bg-green-50 text-green-700'],
-          ['Implemented', DEMO_KAIZEN.filter(k=>k.status==='IMPLEMENTED').length, 'bg-purple-50 text-purple-700'],
-          [`₹${(totalSaved/1000).toFixed(0)}K`, 'Total Savings', 'bg-gray-50 text-gray-700'],
-        ].map(([l, c, cls], i) => (
-          <div key={i} className={`rounded-xl p-4 ${cls}`}>
-            <p className="text-2xl font-bold">{l}</p>
-            <p className="text-xs font-medium mt-0.5">{c}</p>
+          { label: 'Submitted',    count: items.filter(k=>k.status==='SUBMITTED').length,    cls: 'bg-blue-50 text-blue-700' },
+          { label: 'Under Review', count: items.filter(k=>k.status==='UNDER_REVIEW').length, cls: 'bg-orange-50 text-orange-700' },
+          { label: 'Approved',     count: items.filter(k=>k.status==='APPROVED').length,     cls: 'bg-green-50 text-green-700' },
+          { label: 'Implemented',  count: items.filter(k=>k.status==='IMPLEMENTED').length,  cls: 'bg-purple-50 text-purple-700' },
+          { label: 'Total Savings', count: `₹${(totalSaved/1000).toFixed(0)}K`,             cls: 'bg-gray-50 text-gray-700' },
+        ].map(s => (
+          <div key={s.label} className={`rounded-xl p-4 ${s.cls}`}>
+            <p className="text-2xl font-bold">{s.count}</p>
+            <p className="text-xs font-medium mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
 
-      {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex-1 min-w-48 relative">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#ABABAB]" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search kaizen..." className="w-full pl-9 pr-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 bg-white" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search kaizen..."
+            className="w-full pl-9 pr-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 bg-white" />
         </div>
         <div className="flex items-center gap-1 overflow-x-auto">
           {(['ALL', 'SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'IMPLEMENTED'] as const).map(s => (
-            <button key={s} onClick={() => setFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${filter === s ? 'bg-orange-500 text-white' : 'bg-white border border-[#E2E0DC] text-[#757575] hover:border-gray-300'}`}>
+            <button key={s} onClick={() => setFilter(s)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${filter === s ? 'bg-orange-500 text-white' : 'bg-white border border-[#E2E0DC] text-[#757575] hover:border-gray-300'}`}>
               {s === 'ALL' ? 'All' : STATUS_CFG[s].label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* List */}
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="bg-white rounded-xl border border-[#E2E0DC] py-16 text-center">
+          <Loader2 size={32} className="animate-spin text-orange-500 mx-auto mb-3" />
+          <p className="text-sm text-[#757575]">Loading kaizen submissions...</p>
+        </div>
+      ) : error ? (
+        <div className="bg-white rounded-xl border border-[#E2E0DC] py-16 text-center">
+          <p className="text-[#1A1A1A] font-medium">Failed to load</p>
+          <p className="text-sm text-[#757575] mt-1">{error}</p>
+          <button onClick={load} className="mt-4 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg">Retry</button>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="bg-white rounded-xl border border-[#E2E0DC] py-16 text-center">
           <Lightbulb size={40} className="text-[#E2E0DC] mx-auto mb-3" />
           <p className="text-[#1A1A1A] font-medium">No kaizen submissions</p>
@@ -239,8 +316,7 @@ export default function KaizenPage() {
       )}
 
       {selected && <KaizenDetailPanel kaizen={selected} onClose={() => setSelected(null)} />}
-      {showNew && <NewKaizenModal onClose={() => setShowNew(false)} />}
+      {showNew   && <NewKaizenModal onClose={() => setShowNew(false)} onCreated={load} />}
     </div>
   );
 }
-

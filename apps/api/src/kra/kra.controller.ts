@@ -47,7 +47,7 @@ export class KraController {
   }
 
   @Post('objectives')
-  @RequirePermissions('kra.view')
+  @RequirePermissions('kra.manage')
   createObjective(@Body() dto: CreateKraObjectiveDto) {
     return this.kraService.createObjective(dto);
   }
