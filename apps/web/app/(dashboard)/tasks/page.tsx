@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   CheckSquare, Plus, Search, Filter, ChevronDown,
   Circle, AlertCircle, Clock, CheckCircle2, MoreHorizontal,
@@ -352,13 +353,16 @@ export default function TasksPage() {
                 </div>
               </div>
             </div>
-            <div className="p-4 border-t border-[#E2E0DC] flex gap-3">
-              <button className="flex-1 py-2 border border-[#E2E0DC] rounded-lg text-sm font-medium text-[#757575] hover:border-gray-300 transition-colors">
+            <div className="p-4 border-t border-[#E2E0DC] flex gap-2">
+              <button className="py-2 px-3 border border-[#E2E0DC] rounded-lg text-sm font-medium text-[#757575] hover:border-gray-300 transition-colors">
                 Edit
               </button>
-              <button className="flex-1 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">
-                Mark Complete
+              <button className="py-2 px-3 border border-[#E2E0DC] rounded-lg text-sm font-medium text-[#757575] hover:border-gray-300 transition-colors">
+                Complete
               </button>
+              <Link href={`/tasks/${selectedTask.id}`} className="flex-1 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors text-center">
+                Full Details
+              </Link>
             </div>
           </div>
         </div>

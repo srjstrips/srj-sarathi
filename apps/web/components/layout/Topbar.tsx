@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
 import { Bell, Search, Menu, ChevronDown, User, Lock, LogOut, Settings } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,7 +17,10 @@ interface TopbarProps {
 
 export function Topbar({ onMenuClick }: TopbarProps) {
   const { user, logout } = useAuthStore();
+  const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
+
+  const handleLogout = () => { logout(); router.push('/login'); };
 
   const initials = user?.name
     ? user.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
@@ -83,18 +87,18 @@ export function Topbar({ onMenuClick }: TopbarProps) {
               <div className="font-medium text-sm text-[#1A1A1A]">{user?.name}</div>
               <div className="text-xs text-[#757575] truncate">{user?.email}</div>
             </div>
-            <DropdownMenuItem onClick={() => window.location.href = '/profile'} className="flex items-center gap-2 cursor-pointer">
+            <DropdownMenuItem onClick={() => router.push('/profile')} className="flex items-center gap-2 cursor-pointer">
               <User size={15} /> My Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => window.location.href = '/settings'} className="flex items-center gap-2 cursor-pointer">
+            <DropdownMenuItem onClick={() => router.push('/settings')} className="flex items-center gap-2 cursor-pointer">
               <Settings size={15} /> Settings
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => window.location.href = '/privacy'} className="flex items-center gap-2 cursor-pointer">
-              <Lock size={15} /> Privacy &amp; Security
+            <DropdownMenuItem onClick={() => router.push('/security')} className="flex items-center gap-2 cursor-pointer">
+              <Lock size={15} /> Security
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={logout}
+              onClick={handleLogout}
               className="flex items-center gap-2 text-red-600 focus:text-red-600"
             >
               <LogOut size={15} /> Sign out
