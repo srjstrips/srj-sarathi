@@ -1,48 +1,44 @@
-﻿'use client';
-import { useState } from 'react';
-import { Megaphone, Plus, Search, Pin, Bell, ChevronRight, X, Check, AlertCircle, Info, Shield } from 'lucide-react';
+'use client';
+import { useState, useEffect, useCallback } from 'react';
+import { Megaphone, Plus, Search, Pin, Bell, ChevronRight, X, Check, AlertCircle, Info, Shield, Loader2 } from 'lucide-react';
+import { noticesApi } from '../../../lib/api-client';
+import { getErrorMessage } from '../../../lib/api';
 
 type Priority = 'URGENT' | 'HIGH' | 'NORMAL' | 'LOW';
-type Category = 'GENERAL' | 'HR' | 'SAFETY' | 'OPERATIONS' | 'SECURITY';
 
-interface Announcement {
-  id: string; title: string; content: string; priority: Priority;
-  category: Category; publishedBy: string; publishedAt: string;
-  pinned: boolean; read: boolean; acknowledged: boolean; requiresAck: boolean;
-  targetDept?: string;
-}
-
-const DEMO: Announcement[] = [
-  { id: '1', title: 'Safety Drill – All Sections Mandatory', content: 'A mandatory safety drill will be conducted on 10th September 2026 at 2:00 PM. All employees must participate. Please report to your designated assembly area. No work will be exempted during the drill period.', priority: 'URGENT', category: 'SAFETY', publishedBy: 'Safety Officer', publishedAt: '2026-09-05', pinned: true, read: false, acknowledged: false, requiresAck: true },
-  { id: '2', title: 'Holiday Notice – Ganesh Chaturthi', content: 'The plant will remain closed on 7th September 2026 (Sunday) on account of Ganesh Chaturthi. All scheduled operations for that day will resume on Monday 8th September.', priority: 'HIGH', category: 'HR', publishedBy: 'HR Department', publishedAt: '2026-09-04', pinned: true, read: true, acknowledged: true, requiresAck: false },
-  { id: '3', title: 'New Leave Policy – Effective Oct 2026', content: 'The updated leave policy will be effective from 1st October 2026. Key changes include: revised casual leave balance, new sick leave verification process, and updated half-day leave rules. Please review the attached document.', priority: 'NORMAL', category: 'HR', publishedBy: 'HR Department', publishedAt: '2026-09-03', pinned: false, read: false, acknowledged: false, requiresAck: true },
-  { id: '4', title: 'IT System Maintenance – 8 Sep', content: 'The HRMS server will undergo scheduled maintenance on 8th September from 12:00 AM to 4:00 AM. The system will be unavailable during this period. Please save all work before midnight.', priority: 'NORMAL', category: 'OPERATIONS', publishedBy: 'IT Department', publishedAt: '2026-09-02', pinned: false, read: true, acknowledged: false, requiresAck: false },
-  { id: '5', title: 'Security Policy Update', content: 'All employees are required to update their HRMS passwords by 15th September 2026. Passwords must be at least 12 characters and include a mix of letters, numbers, and symbols.', priority: 'HIGH', category: 'SECURITY', publishedBy: 'IT Security', publishedAt: '2026-09-01', pinned: false, read: false, acknowledged: false, requiresAck: true },
-  { id: '6', title: 'Q3 Performance Review Schedule', content: 'The Q3 performance review cycle begins 20th September. All managers must complete their direct report reviews by 30th September. KRA forms will be available in the system from 15th September.', priority: 'NORMAL', category: 'HR', publishedBy: 'HR Department', publishedAt: '2026-08-30', pinned: false, read: true, acknowledged: true, requiresAck: false },
-];
-
-const PRIORITY_CFG: Record<Priority, { label: string; color: string; bg: string; icon: React.ElementType }> = {
+const PRIORITY_CFG: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
   URGENT: { label: 'Urgent', color: 'text-red-700',    bg: 'bg-red-50 border-red-200',    icon: AlertCircle },
   HIGH:   { label: 'High',   color: 'text-orange-700', bg: 'bg-orange-50 border-orange-200', icon: Bell },
   NORMAL: { label: 'Normal', color: 'text-blue-700',   bg: 'bg-blue-50 border-blue-200',  icon: Info },
   LOW:    { label: 'Low',    color: 'text-gray-600',   bg: 'bg-gray-50 border-gray-200',  icon: Megaphone },
 };
 
-const CAT_CFG: Record<Category, { label: string; color: string }> = {
-  GENERAL:    { label: 'General',    color: 'text-gray-600 bg-gray-100' },
-  HR:         { label: 'HR',         color: 'text-purple-600 bg-purple-50' },
-  SAFETY:     { label: 'Safety',     color: 'text-red-600 bg-red-50' },
-  OPERATIONS: { label: 'Operations', color: 'text-blue-600 bg-blue-50' },
-  SECURITY:   { label: 'Security',   color: 'text-orange-600 bg-orange-50' },
+const CAT_COLORS: Record<string, string> = {
+  GENERAL:    'text-gray-600 bg-gray-100',
+  HR:         'text-purple-600 bg-purple-50',
+  SAFETY:     'text-red-600 bg-red-50',
+  OPERATIONS: 'text-blue-600 bg-blue-50',
+  SECURITY:   'text-orange-600 bg-orange-50',
 };
 
-function AnnouncementCard({ ann, onClick }: { ann: Announcement; onClick: () => void }) {
-  const pcfg = PRIORITY_CFG[ann.priority];
-  const ccfg = CAT_CFG[ann.category];
+function getPriorityConfig(priority: string) {
+  return PRIORITY_CFG[priority] ?? PRIORITY_CFG.NORMAL;
+}
+
+function formatDate(d: string) {
+  try { return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch { return d; }
+}
+
+function AnnouncementCard({ notice, onClick, ackedIds }: { notice: any; onClick: () => void; ackedIds: Set<string> }) {
+  const pcfg = getPriorityConfig(notice.priority);
   const Icon = pcfg.icon;
+  const catColor = CAT_COLORS[notice.category] ?? 'text-gray-600 bg-gray-100';
+  const acked = ackedIds.has(notice.id);
+
   return (
     <div onClick={onClick}
-      className={`bg-white rounded-xl border p-4 cursor-pointer hover:shadow-md transition-all ${ann.priority === 'URGENT' ? 'border-red-200' : 'border-[#E2E0DC] hover:border-orange-200'} ${!ann.read ? 'ring-1 ring-orange-200' : ''}`}>
+      className={`bg-white rounded-xl border p-4 cursor-pointer hover:shadow-md transition-all ${notice.priority === 'URGENT' ? 'border-red-200' : 'border-[#E2E0DC] hover:border-orange-200'}`}>
       <div className="flex items-start gap-3">
         <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${pcfg.bg} border`}>
           <Icon size={16} className={pcfg.color} />
@@ -50,22 +46,22 @@ function AnnouncementCard({ ann, onClick }: { ann: Announcement; onClick: () => 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2 flex-wrap">
-              {ann.pinned && <Pin size={12} className="text-orange-500 flex-shrink-0" />}
-              {!ann.read && <span className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" />}
-              <h3 className="font-semibold text-[#1A1A1A] text-sm">{ann.title}</h3>
+              {notice.isPinned && <Pin size={12} className="text-orange-500 flex-shrink-0" />}
+              <h3 className="font-semibold text-[#1A1A1A] text-sm">{notice.title}</h3>
             </div>
             <ChevronRight size={16} className="text-[#ABABAB] flex-shrink-0 mt-0.5" />
           </div>
-          <p className="text-xs text-[#757575] mt-1 line-clamp-2">{ann.content}</p>
+          <p className="text-xs text-[#757575] mt-1 line-clamp-2">{notice.content}</p>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${ccfg.color}`}>{ccfg.label}</span>
+            {notice.category && (
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>{notice.category}</span>
+            )}
             <span className={`text-xs font-medium ${pcfg.color}`}>{pcfg.label}</span>
-            <span className="text-xs text-[#ABABAB]">·</span>
-            <span className="text-xs text-[#ABABAB]">{ann.publishedBy}</span>
-            <span className="text-xs text-[#ABABAB]">·</span>
-            <span className="text-xs text-[#ABABAB]">{ann.publishedAt}</span>
-            {ann.acknowledged && <span className="ml-auto flex items-center gap-1 text-xs text-green-600 font-medium"><Check size={11} />Acknowledged</span>}
-            {ann.requiresAck && !ann.acknowledged && <span className="ml-auto text-xs text-orange-600 font-medium">Acknowledgement needed</span>}
+            {notice.publishedAt && (
+              <><span className="text-xs text-[#ABABAB]">·</span><span className="text-xs text-[#ABABAB]">{formatDate(notice.publishedAt)}</span></>
+            )}
+            {acked && <span className="ml-auto flex items-center gap-1 text-xs text-green-600 font-medium"><Check size={11} />Acknowledged</span>}
+            {notice.requiresAck && !acked && <span className="ml-auto text-xs text-orange-600 font-medium">Acknowledgement needed</span>}
           </div>
         </div>
       </div>
@@ -73,11 +69,36 @@ function AnnouncementCard({ ann, onClick }: { ann: Announcement; onClick: () => 
   );
 }
 
-function AnnouncementModal({ ann, onClose }: { ann: Announcement; onClose: () => void }) {
-  const [acked, setAcked] = useState(ann.acknowledged);
-  const pcfg = PRIORITY_CFG[ann.priority];
-  const ccfg = CAT_CFG[ann.category];
+function AnnouncementModal({ notice, onClose, onAcknowledge, ackedIds }: {
+  notice: any; onClose: () => void;
+  onAcknowledge: (id: string) => Promise<void>;
+  ackedIds: Set<string>;
+}) {
+  const [acking, setAcking] = useState(false);
+  const [comment, setComment] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [comments, setComments] = useState<any[]>(notice.comments ?? []);
+  const pcfg = getPriorityConfig(notice.priority);
+  const catColor = CAT_COLORS[notice.category] ?? 'text-gray-600 bg-gray-100';
   const Icon = pcfg.icon;
+  const acked = ackedIds.has(notice.id);
+
+  const handleAck = async () => {
+    setAcking(true);
+    try { await onAcknowledge(notice.id); } finally { setAcking(false); }
+  };
+
+  const handleComment = async () => {
+    if (!comment.trim()) return;
+    setSubmittingComment(true);
+    try {
+      const c = await noticesApi.addComment(notice.id, comment.trim());
+      setComments(prev => [c, ...prev]);
+      setComment('');
+    } catch { /* silently fail */ }
+    finally { setSubmittingComment(false); }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -85,7 +106,7 @@ function AnnouncementModal({ ann, onClose }: { ann: Announcement; onClose: () =>
           <div className="flex items-center gap-2">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${pcfg.bg} border`}><Icon size={16} className={pcfg.color} /></div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${ccfg.color}`}>{ccfg.label}</span>
+              {notice.category && <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${catColor}`}>{notice.category}</span>}
               <span className={`text-xs font-semibold ${pcfg.color}`}>{pcfg.label}</span>
             </div>
           </div>
@@ -93,23 +114,27 @@ function AnnouncementModal({ ann, onClose }: { ann: Announcement; onClose: () =>
         </div>
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div className="flex items-start gap-2">
-            {ann.pinned && <Pin size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />}
-            <h2 className="text-xl font-bold text-[#1A1A1A]">{ann.title}</h2>
+            {notice.isPinned && <Pin size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />}
+            <h2 className="text-xl font-bold text-[#1A1A1A]">{notice.title}</h2>
           </div>
-          <p className="text-sm text-[#757575] leading-relaxed">{ann.content}</p>
-          <div className="flex items-center gap-3 text-sm text-[#757575] pt-2 border-t border-[#E2E0DC]">
-            <span className="font-medium text-[#1A1A1A]">{ann.publishedBy}</span>
-            <span>·</span><span>{ann.publishedAt}</span>
-          </div>
-          {ann.requiresAck && !acked && (
+          <p className="text-sm text-[#757575] leading-relaxed whitespace-pre-line">{notice.content}</p>
+          {notice.publishedAt && (
+            <div className="flex items-center gap-3 text-sm text-[#757575] pt-2 border-t border-[#E2E0DC]">
+              <span>{formatDate(notice.publishedAt)}</span>
+            </div>
+          )}
+
+          {notice.requiresAck && !acked && (
             <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl">
               <div className="flex items-start gap-3">
                 <AlertCircle size={18} className="text-orange-500 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-orange-800">Acknowledgement Required</p>
                   <p className="text-xs text-orange-600 mt-0.5">Please read and acknowledge this announcement.</p>
-                  <button onClick={() => setAcked(true)} className="mt-3 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
-                    <Check size={14} />I have read and understood this
+                  <button onClick={handleAck} disabled={acking}
+                    className="mt-3 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-60">
+                    {acking ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                    I have read and understood this
                   </button>
                 </div>
               </div>
@@ -121,6 +146,112 @@ function AnnouncementModal({ ann, onClose }: { ann: Announcement; onClose: () =>
               <p className="text-sm text-green-700 font-medium">You have acknowledged this announcement.</p>
             </div>
           )}
+
+          {/* Comments */}
+          <div className="pt-2 border-t border-[#E2E0DC]">
+            <h3 className="text-sm font-semibold text-[#1A1A1A] mb-3">Comments</h3>
+            <div className="flex gap-2 mb-4">
+              <input value={comment} onChange={e => setComment(e.target.value)}
+                placeholder="Add a comment..."
+                className="flex-1 px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30"
+                onKeyDown={e => e.key === 'Enter' && handleComment()} />
+              <button onClick={handleComment} disabled={submittingComment || !comment.trim()}
+                className="px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg disabled:opacity-40 transition-colors">
+                {submittingComment ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+              </button>
+            </div>
+            {comments.length > 0 ? (
+              <div className="space-y-3">
+                {comments.map((c: any) => (
+                  <div key={c.id} className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-[#1A1A1A]">{c.content}</p>
+                    <p className="text-xs text-[#ABABAB] mt-1">{formatDate(c.createdAt)}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-[#ABABAB]">No comments yet.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NewNoticeModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [form, setForm] = useState({ title: '', content: '', category: 'GENERAL', priority: 'NORMAL', isPinned: false, requiresAck: false });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async () => {
+    if (!form.title.trim() || !form.content.trim()) { setError('Title and content are required'); return; }
+    setSaving(true);
+    setError('');
+    try {
+      await noticesApi.create({ ...form, publishedAt: new Date().toISOString() });
+      onCreated();
+    } catch (e) {
+      setError(getErrorMessage(e));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+        <div className="flex items-center justify-between p-5 border-b border-[#E2E0DC]">
+          <h2 className="text-lg font-semibold text-[#1A1A1A]">New Announcement</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100"><X size={18} /></button>
+        </div>
+        <div className="p-5 space-y-4">
+          {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{error}</div>}
+          <div>
+            <label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Title *</label>
+            <input autoFocus value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
+              className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400"
+              placeholder="Announcement title" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Content *</label>
+            <textarea rows={4} value={form.content} onChange={e => setForm(p => ({ ...p, content: e.target.value }))}
+              className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 resize-none"
+              placeholder="Announcement content..." />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Category</label>
+              <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
+                className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/30">
+                {['GENERAL', 'HR', 'SAFETY', 'OPERATIONS', 'SECURITY'].map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Priority</label>
+              <select value={form.priority} onChange={e => setForm(p => ({ ...p, priority: e.target.value }))}
+                className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/30">
+                {['NORMAL', 'LOW', 'HIGH', 'URGENT'].map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={form.isPinned} onChange={e => setForm(p => ({ ...p, isPinned: e.target.checked }))} className="rounded" />
+              <span className="text-sm text-[#1A1A1A]">Pin</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={form.requiresAck} onChange={e => setForm(p => ({ ...p, requiresAck: e.target.checked }))} className="rounded" />
+              <span className="text-sm text-[#1A1A1A]">Require acknowledgement</span>
+            </label>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-3 p-5 border-t border-[#E2E0DC]">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-[#757575] hover:text-[#1A1A1A]">Cancel</button>
+          <button onClick={handleSubmit} disabled={saving}
+            className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-60">
+            {saving && <Loader2 size={14} className="animate-spin" />}Publish
+          </button>
         </div>
       </div>
     </div>
@@ -128,26 +259,49 @@ function AnnouncementModal({ ann, onClose }: { ann: Announcement; onClose: () =>
 }
 
 export default function AnnouncementsPage() {
+  const [notices, setNotices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [catFilter, setCatFilter] = useState<Category | 'ALL'>('ALL');
-  const [selected, setSelected] = useState<Announcement | null>(null);
+  const [catFilter, setCatFilter] = useState('ALL');
+  const [selected, setSelected] = useState<any | null>(null);
   const [showNew, setShowNew] = useState(false);
+  const [ackedIds, setAckedIds] = useState<Set<string>>(new Set());
 
-  const categories: { id: Category | 'ALL'; label: string }[] = [
-    { id: 'ALL', label: 'All' }, { id: 'GENERAL', label: 'General' }, { id: 'HR', label: 'HR' },
-    { id: 'SAFETY', label: 'Safety' }, { id: 'OPERATIONS', label: 'Operations' }, { id: 'SECURITY', label: 'Security' },
-  ];
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const resp = await noticesApi.list({ status: 'PUBLISHED', limit: 50 });
+      const items = resp.items ?? resp ?? [];
+      setNotices(items);
+    } catch {
+      setNotices([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const pinned = DEMO.filter(a => a.pinned && (catFilter === 'ALL' || a.category === catFilter) && a.title.toLowerCase().includes(search.toLowerCase()));
-  const rest   = DEMO.filter(a => !a.pinned && (catFilter === 'ALL' || a.category === catFilter) && a.title.toLowerCase().includes(search.toLowerCase()));
-  const unread = DEMO.filter(a => !a.read).length;
+  useEffect(() => { load(); }, [load]);
+
+  const handleAcknowledge = async (noticeId: string) => {
+    await noticesApi.acknowledge(noticeId);
+    setAckedIds(prev => new Set([...prev, noticeId]));
+  };
+
+  const categories = ['ALL', 'GENERAL', 'HR', 'SAFETY', 'OPERATIONS', 'SECURITY'];
+
+  const filtered = notices.filter(n =>
+    (catFilter === 'ALL' || n.category === catFilter) &&
+    n.title.toLowerCase().includes(search.toLowerCase()),
+  );
+  const pinned = filtered.filter((n: any) => n.isPinned);
+  const rest   = filtered.filter((n: any) => !n.isPinned);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[#1A1A1A]">Announcements</h1>
-          <p className="text-sm text-[#757575] mt-0.5">{unread > 0 ? `${unread} unread` : 'All caught up'}</p>
+          <p className="text-sm text-[#757575] mt-0.5">{notices.length} notice{notices.length !== 1 ? 's' : ''}</p>
         </div>
         <button onClick={() => setShowNew(true)} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">
           <Plus size={16} /><span className="hidden sm:inline">New</span>
@@ -157,77 +311,61 @@ export default function AnnouncementsPage() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex-1 min-w-48 relative">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#ABABAB]" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search announcements..." className="w-full pl-9 pr-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 bg-white" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search announcements..."
+            className="w-full pl-9 pr-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 bg-white" />
         </div>
         <div className="flex items-center gap-1 overflow-x-auto">
           {categories.map(cat => (
-            <button key={cat.id} onClick={() => setCatFilter(cat.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${catFilter === cat.id ? 'bg-orange-500 text-white' : 'bg-white border border-[#E2E0DC] text-[#757575] hover:border-gray-300'}`}>
-              {cat.label}
+            <button key={cat} onClick={() => setCatFilter(cat)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${catFilter === cat ? 'bg-orange-500 text-white' : 'bg-white border border-[#E2E0DC] text-[#757575] hover:border-gray-300'}`}>
+              {cat === 'ALL' ? 'All' : cat}
             </button>
           ))}
         </div>
       </div>
 
-      {pinned.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs font-semibold text-[#ABABAB] uppercase tracking-wide flex items-center gap-1.5"><Pin size={12} />Pinned</p>
-          {pinned.map(a => <AnnouncementCard key={a.id} ann={a} onClick={() => setSelected(a)} />)}
+      {loading ? (
+        <div className="bg-white rounded-xl border border-[#E2E0DC] py-16 flex items-center justify-center">
+          <Loader2 size={32} className="text-orange-400 animate-spin" />
         </div>
+      ) : (
+        <>
+          {pinned.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-[#ABABAB] uppercase tracking-wide flex items-center gap-1.5"><Pin size={12} />Pinned</p>
+              {pinned.map((n: any) => <AnnouncementCard key={n.id} notice={n} ackedIds={ackedIds} onClick={() => setSelected(n)} />)}
+            </div>
+          )}
+          {rest.length > 0 && (
+            <div className="space-y-2">
+              {pinned.length > 0 && <p className="text-xs font-semibold text-[#ABABAB] uppercase tracking-wide">Recent</p>}
+              {rest.map((n: any) => <AnnouncementCard key={n.id} notice={n} ackedIds={ackedIds} onClick={() => setSelected(n)} />)}
+            </div>
+          )}
+          {filtered.length === 0 && (
+            <div className="bg-white rounded-xl border border-[#E2E0DC] py-16 text-center">
+              <Megaphone size={40} className="text-[#E2E0DC] mx-auto mb-3" />
+              <p className="text-[#1A1A1A] font-medium">No announcements</p>
+              <p className="text-sm text-[#757575] mt-1">Announcements will appear here once published.</p>
+            </div>
+          )}
+        </>
       )}
 
-      {rest.length > 0 && (
-        <div className="space-y-2">
-          {pinned.length > 0 && <p className="text-xs font-semibold text-[#ABABAB] uppercase tracking-wide">Recent</p>}
-          {rest.map(a => <AnnouncementCard key={a.id} ann={a} onClick={() => setSelected(a)} />)}
-        </div>
+      {selected && (
+        <AnnouncementModal
+          notice={selected}
+          ackedIds={ackedIds}
+          onClose={() => setSelected(null)}
+          onAcknowledge={handleAcknowledge}
+        />
       )}
-
-      {pinned.length === 0 && rest.length === 0 && (
-        <div className="bg-white rounded-xl border border-[#E2E0DC] py-16 text-center">
-          <Megaphone size={40} className="text-[#E2E0DC] mx-auto mb-3" />
-          <p className="text-[#1A1A1A] font-medium">No announcements</p>
-          <p className="text-sm text-[#757575] mt-1">Announcements will appear here.</p>
-        </div>
-      )}
-
-      {selected && <AnnouncementModal ann={selected} onClose={() => setSelected(null)} />}
-
       {showNew && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-            <div className="flex items-center justify-between p-5 border-b border-[#E2E0DC]">
-              <h2 className="text-lg font-semibold text-[#1A1A1A]">New Announcement</h2>
-              <button onClick={() => setShowNew(false)} className="p-1.5 rounded-lg hover:bg-gray-100"><X size={18} /></button>
-            </div>
-            <div className="p-5 space-y-4">
-              <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Title <span className="text-red-500">*</span></label><input autoFocus className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400" placeholder="Announcement title" /></div>
-              <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Content <span className="text-red-500">*</span></label><textarea rows={4} className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 resize-none" placeholder="Announcement content..." /></div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Category</label>
-                  <select className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/30">
-                    {categories.filter(c=>c.id!=='ALL').map(c=><option key={c.id} value={c.id}>{c.label}</option>)}
-                  </select>
-                </div>
-                <div><label className="block text-sm font-medium text-[#1A1A1A] mb-1.5">Priority</label>
-                  <select className="w-full px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/30">
-                    <option>Normal</option><option>High</option><option>Urgent</option><option>Low</option>
-                  </select>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" className="rounded" /><span className="text-sm text-[#1A1A1A]">Pin this announcement</span></label>
-                <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" className="rounded" /><span className="text-sm text-[#1A1A1A]">Require acknowledgement</span></label>
-              </div>
-            </div>
-            <div className="flex items-center justify-end gap-3 p-5 border-t border-[#E2E0DC]">
-              <button onClick={() => setShowNew(false)} className="px-4 py-2 text-sm text-[#757575] hover:text-[#1A1A1A]">Cancel</button>
-              <button className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">Publish</button>
-            </div>
-          </div>
-        </div>
+        <NewNoticeModal
+          onClose={() => setShowNew(false)}
+          onCreated={() => { setShowNew(false); load(); }}
+        />
       )}
     </div>
   );
 }
-

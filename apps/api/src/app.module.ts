@@ -14,6 +14,11 @@ import { ExportModule } from './export/export.module.js';
 import { TaskModule } from './task/task.module.js';
 import { KaizenModule } from './kaizen/kaizen.module.js';
 import { ChatModule } from './chat/chat.module.js';
+import { KraModule } from './kra/kra.module.js';
+import { LeaveModule } from './leave/leave.module.js';
+import { NoticesModule } from './notices/notices.module.js';
+import { AttendanceModule } from './attendance/attendance.module.js';
+import { NotificationsModule } from './notifications/notifications.module.js';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor.js';
 import configuration from './config/configuration.js';
 
@@ -37,6 +42,11 @@ import configuration from './config/configuration.js';
     TaskModule,
     KaizenModule,
     ChatModule,
+    KraModule,
+    LeaveModule,
+    NoticesModule,
+    AttendanceModule,
+    NotificationsModule,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },

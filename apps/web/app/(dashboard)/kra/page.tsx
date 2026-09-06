@@ -1,42 +1,25 @@
-﻿'use client';
-import { useState } from 'react';
-import { Target, ChevronRight, X, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+'use client';
+import { useState, useEffect, useCallback } from 'react';
+import { Target, ChevronRight, X, CheckCircle2, Clock, AlertCircle, Plus, Loader2 } from 'lucide-react';
+import { kraApi } from '../../../lib/api-client';
+import { useAuthStore } from '../../../store/auth.store';
+import { getErrorMessage } from '../../../lib/api';
 
-type KRAStatus = 'DRAFT' | 'SELF_REVIEW' | 'MANAGER_REVIEW' | 'FINALIZED';
 type Rating = 1 | 2 | 3 | 4 | 5;
 
-interface KRAObjective {
-  id: string; area: string; target: string; measurement: string;
-  weight: number; actual?: string; selfRating?: Rating; managerRating?: Rating;
-}
-
-interface KRACycle {
-  id: string; period: string; status: KRAStatus;
-  objectives: KRAObjective[];
-  finalScore?: number;
-}
-
-const DEMO_CYCLE: KRACycle = {
-  id: 'c1', period: 'Q3 2026 (Jul – Sep 2026)', status: 'SELF_REVIEW',
-  objectives: [
-    { id: 'o1', area: 'Production Output', target: 'Achieve 95% of monthly billet production target', measurement: 'Monthly production report vs target', weight: 30, actual: '92%', selfRating: 4 },
-    { id: 'o2', area: 'Quality', target: 'Maintain rejection rate below 2%', measurement: 'QC monthly report', weight: 25, actual: '1.8%', selfRating: 5 },
-    { id: 'o3', area: 'Safety', target: 'Zero LTI incidents in the quarter', measurement: 'Incident register', weight: 20, actual: 'Zero', selfRating: 5 },
-    { id: 'o4', area: 'Kaizen Submission', target: 'Submit minimum 2 kaizen per quarter', measurement: 'Kaizen system', weight: 15, actual: '1 submitted', selfRating: 2 },
-    { id: 'o5', area: 'Team Development', target: 'Complete cross-training for 3 team members', measurement: 'Training records', weight: 10, actual: 'In progress', selfRating: 3 },
-  ],
+const STATUS_CFG: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
+  DRAFT:        { label: 'Draft',           icon: Clock,        color: 'text-gray-500',   bg: 'bg-gray-100' },
+  SUBMITTED:    { label: 'Submitted',       icon: CheckCircle2, color: 'text-blue-600',   bg: 'bg-blue-50' },
+  HOD_REVIEWED: { label: 'HOD Review',      icon: AlertCircle,  color: 'text-orange-600', bg: 'bg-orange-50' },
+  HEAD_REVIEWED:{ label: 'Head Review',     icon: AlertCircle,  color: 'text-yellow-600', bg: 'bg-yellow-50' },
+  FINALIZED:    { label: 'Finalized',       icon: CheckCircle2, color: 'text-green-600',  bg: 'bg-green-50' },
+  ACTIVE:       { label: 'Active',          icon: CheckCircle2, color: 'text-green-600',  bg: 'bg-green-50' },
+  CLOSED:       { label: 'Closed',          icon: Clock,        color: 'text-gray-500',   bg: 'bg-gray-100' },
 };
 
-const STATUS_CFG: Record<KRAStatus, { label: string; icon: React.ElementType; color: string; bg: string }> = {
-  DRAFT:          { label: 'Draft',           icon: Clock,        color: 'text-gray-500',   bg: 'bg-gray-100' },
-  SELF_REVIEW:    { label: 'Self Review',     icon: CheckCircle2, color: 'text-blue-600',   bg: 'bg-blue-50' },
-  MANAGER_REVIEW: { label: 'Manager Review',  icon: AlertCircle,  color: 'text-orange-600', bg: 'bg-orange-50' },
-  FINALIZED:      { label: 'Finalized',       icon: CheckCircle2, color: 'text-green-600',  bg: 'bg-green-50' },
-};
+const RATING_LABELS: Record<number, string> = { 1: 'Poor', 2: 'Below Expectation', 3: 'Meets Expectation', 4: 'Exceeds Expectation', 5: 'Outstanding' };
 
-const RATING_LABELS: Record<Rating, string> = { 1: 'Poor', 2: 'Below Expectation', 3: 'Meets Expectation', 4: 'Exceeds Expectation', 5: 'Outstanding' };
-
-function RatingStars({ value, onChange }: { value?: Rating; onChange?: (r: Rating) => void }) {
+function RatingStars({ value, onChange }: { value?: number; onChange?: (r: Rating) => void }) {
   return (
     <div className="flex items-center gap-1">
       {([1, 2, 3, 4, 5] as Rating[]).map(r => (
@@ -50,121 +33,235 @@ function RatingStars({ value, onChange }: { value?: Rating; onChange?: (r: Ratin
   );
 }
 
-export default function KraPage() {
-  const [selected, setSelected] = useState<KRAObjective | null>(null);
-  const [ratings, setRatings] = useState<Record<string, Rating>>({});
-  const cycle = DEMO_CYCLE;
-  const StatusIcon = STATUS_CFG[cycle.status].icon;
+function ObjectivePanel({ objective, onClose, userId }: { objective: any; onClose: () => void; userId: string }) {
+  const [selfRating, setSelfRating] = useState<number | undefined>();
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [ratings, setRatings] = useState<any[]>([]);
 
-  const getWeightedScore = () => {
-    const totalWeight = cycle.objectives.reduce((s, o) => s + o.weight, 0);
-    const scored = cycle.objectives.reduce((s, o) => {
-      const r = ratings[o.id] ?? o.selfRating;
-      return s + (r ? (r / 5) * o.weight : 0);
-    }, 0);
-    return Math.round((scored / totalWeight) * 100);
+  useEffect(() => {
+    kraApi.getRatings(objective.id).then(r => {
+      const rs = Array.isArray(r) ? r : [];
+      setRatings(rs);
+      const self = rs.find((x: any) => x.raterType === 'SELF');
+      if (self) setSelfRating(self.rating);
+    }).catch(() => {});
+  }, [objective.id]);
+
+  const handleSubmitRating = async () => {
+    if (!selfRating) return;
+    setSubmitting(true);
+    try {
+      await kraApi.submitRating(objective.id, 'SELF', selfRating);
+      setSubmitted(true);
+    } catch { /* ignore */ }
+    finally { setSubmitting(false); }
   };
 
+  const sc = STATUS_CFG[objective.status] ?? STATUS_CFG.DRAFT;
+  const Icon = sc.icon;
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div><h1 className="text-2xl font-bold text-[#1A1A1A]">KRA</h1><p className="text-sm text-[#757575] mt-0.5">Key Result Areas — Performance Review</p></div>
-      </div>
-
-      {/* Cycle header */}
-      <div className="bg-white rounded-xl border border-[#E2E0DC] p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_CFG[cycle.status].bg} ${STATUS_CFG[cycle.status].color}`}>
-                <StatusIcon size={11} />{STATUS_CFG[cycle.status].label}
-              </span>
-            </div>
-            <h2 className="text-lg font-bold text-[#1A1A1A]">{cycle.period}</h2>
-            <p className="text-sm text-[#757575] mt-0.5">Please complete your self-assessment for all objectives.</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-5 border-b border-[#E2E0DC]">
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${sc.bg} ${sc.color}`}>
+              <Icon size={11} />{sc.label}
+            </span>
+            <span className="text-xs text-[#757575]">W: {objective.weightage}%</span>
           </div>
-          <div className="text-center flex-shrink-0">
-            <div className="w-20 h-20 rounded-full border-4 border-orange-500 flex items-center justify-center">
-              <span className="text-2xl font-bold text-[#1A1A1A]">{getWeightedScore()}%</span>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100"><X size={18} /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          <h2 className="text-lg font-bold text-[#1A1A1A]">{objective.title}</h2>
+          {objective.description && <p className="text-sm text-[#757575]">{objective.description}</p>}
+          {(objective.target || objective.unit) && (
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs font-medium text-[#757575] mb-1">Target</p>
+              <p className="text-sm text-[#1A1A1A]">{objective.target}{objective.unit ? ` (${objective.unit})` : ''}</p>
             </div>
-            <p className="text-xs text-[#757575] mt-1">Current Score</p>
+          )}
+
+          <div className="border-t border-[#E2E0DC] pt-4">
+            <p className="text-sm font-semibold text-[#1A1A1A] mb-3">Self Rating</p>
+            <RatingStars value={selfRating} onChange={v => setSelfRating(v)} />
+            {selfRating && !submitted && (
+              <button onClick={handleSubmitRating} disabled={submitting}
+                className="mt-3 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-60">
+                {submitting && <Loader2 size={14} className="animate-spin" />}Submit Rating
+              </button>
+            )}
+            {submitted && <p className="mt-2 text-sm text-green-600 font-medium">Rating submitted!</p>}
           </div>
-        </div>
 
-        {/* Status steps */}
-        <div className="flex items-center mt-4 pt-4 border-t border-[#E2E0DC]">
-          {(['DRAFT', 'SELF_REVIEW', 'MANAGER_REVIEW', 'FINALIZED'] as KRAStatus[]).map((s, i) => {
-            const steps: KRAStatus[] = ['DRAFT', 'SELF_REVIEW', 'MANAGER_REVIEW', 'FINALIZED'];
-            const active = steps.indexOf(cycle.status) >= i;
-            return (
-              <div key={s} className="flex items-center flex-1">
-                <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${active ? 'bg-orange-500' : 'bg-gray-200'}`} />
-                <p className={`text-xs ml-1 hidden sm:block ${active ? 'text-orange-600 font-medium' : 'text-[#ABABAB]'}`}>{STATUS_CFG[s].label.split(' ')[0]}</p>
-                {i < 3 && <div className={`flex-1 h-0.5 mx-2 ${steps.indexOf(cycle.status) > i ? 'bg-orange-500' : 'bg-gray-200'}`} />}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Objectives */}
-      <div className="space-y-3">
-        {cycle.objectives.map((obj, idx) => {
-          const selfR = ratings[obj.id] ?? obj.selfRating;
-          return (
-            <div key={obj.id} className="bg-white rounded-xl border border-[#E2E0DC] p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-semibold text-orange-500">#{idx + 1}</span>
-                    <h3 className="font-semibold text-[#1A1A1A] text-sm">{obj.area}</h3>
-                    <span className="ml-auto text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full flex-shrink-0">{obj.weight}%</span>
-                  </div>
-                  <p className="text-xs text-[#757575] mb-2">{obj.target}</p>
-                  <p className="text-xs text-[#ABABAB]">Measure: {obj.measurement}</p>
+          {ratings.filter(r => r.raterType !== 'SELF').length > 0 && (
+            <div className="border-t border-[#E2E0DC] pt-4">
+              <p className="text-sm font-semibold text-[#1A1A1A] mb-3">Reviewer Ratings</p>
+              {ratings.filter(r => r.raterType !== 'SELF').map((r: any) => (
+                <div key={r.id} className="flex items-center justify-between py-2">
+                  <span className="text-sm text-[#757575]">{r.raterType}</span>
+                  <RatingStars value={r.rating} />
                 </div>
-              </div>
-
-              {obj.actual && (
-                <div className="mt-3 p-2.5 bg-[#F8F7F4] rounded-lg">
-                  <p className="text-xs text-[#ABABAB] mb-0.5">Actual Achievement</p>
-                  <p className="text-sm font-medium text-[#1A1A1A]">{obj.actual}</p>
-                </div>
-              )}
-
-              <div className="mt-3">
-                <p className="text-xs text-[#757575] mb-1.5">Self Rating</p>
-                <RatingStars value={selfR} onChange={r => setRatings(prev => ({ ...prev, [obj.id]: r }))} />
-              </div>
-
-              {obj.managerRating && (
-                <div className="mt-2">
-                  <p className="text-xs text-[#757575] mb-1.5">Manager Rating</p>
-                  <RatingStars value={obj.managerRating} />
-                </div>
-              )}
+              ))}
             </div>
-          );
-        })}
-      </div>
-
-      {/* Summary and actions */}
-      <div className="bg-white rounded-xl border border-[#E2E0DC] p-5">
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          {[['Objectives', cycle.objectives.length, 'text-[#1A1A1A]'],
-            ['Self-Rated', cycle.objectives.filter(o => ratings[o.id] || o.selfRating).length, 'text-blue-600'],
-            ['Pending', cycle.objectives.filter(o => !ratings[o.id] && !o.selfRating).length, 'text-orange-600']].map(([l, v, cls]) => (
-            <div key={String(l)} className="text-center">
-              <p className={`text-2xl font-bold ${cls}`}>{v}</p>
-              <p className="text-xs text-[#757575]">{l}</p>
-            </div>
-          ))}
+          )}
         </div>
-        <button className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors">
-          Submit Self Assessment
-        </button>
       </div>
     </div>
   );
 }
 
+export default function KraPage() {
+  const { user } = useAuthStore();
+  const [cycles, setCycles] = useState<any[]>([]);
+  const [objectives, setObjectives] = useState<any[]>([]);
+  const [selectedCycle, setSelectedCycle] = useState<any | null>(null);
+  const [selectedObj, setSelectedObj] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const cs = await kraApi.listCycles();
+      const cyclesArr = Array.isArray(cs) ? cs : [];
+      setCycles(cyclesArr);
+      const active = cyclesArr.find((c: any) => c.status === 'ACTIVE') ?? cyclesArr[0];
+      setSelectedCycle(active ?? null);
+      if (active) {
+        const objs = await kraApi.listObjectives({ cycleId: active.id, employeeId: user?.id });
+        setObjectives(objs.items ?? objs ?? []);
+      }
+    } catch {
+      setCycles([]); setObjectives([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleCycleChange = async (cycleId: string) => {
+    const cycle = cycles.find(c => c.id === cycleId);
+    setSelectedCycle(cycle ?? null);
+    if (cycle) {
+      try {
+        const objs = await kraApi.listObjectives({ cycleId, employeeId: user?.id });
+        setObjectives(objs.items ?? objs ?? []);
+      } catch {
+        setObjectives([]);
+      }
+    }
+  };
+
+  const totalWeight = objectives.reduce((s, o) => s + (o.weightage ?? 0), 0);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-32">
+        <Loader2 size={32} className="text-orange-400 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-[#1A1A1A]">KRA</h1>
+          <p className="text-sm text-[#757575] mt-0.5">Key Result Areas — Performance Review</p>
+        </div>
+        {cycles.length > 1 && (
+          <select value={selectedCycle?.id ?? ''} onChange={e => handleCycleChange(e.target.value)}
+            className="px-3 py-2 border border-[#E2E0DC] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/30">
+            {cycles.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        )}
+      </div>
+
+      {cycles.length === 0 ? (
+        <div className="bg-white rounded-xl border border-[#E2E0DC] py-16 text-center">
+          <Target size={40} className="text-[#E2E0DC] mx-auto mb-3" />
+          <p className="text-[#1A1A1A] font-medium">No KRA cycles</p>
+          <p className="text-sm text-[#757575] mt-1">KRA cycles will appear here once created by admin.</p>
+        </div>
+      ) : (
+        <>
+          {selectedCycle && (
+            <div className="bg-white rounded-xl border border-[#E2E0DC] p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    {(() => {
+                      const sc = STATUS_CFG[selectedCycle.status] ?? STATUS_CFG.DRAFT;
+                      const Icon = sc.icon;
+                      return (
+                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${sc.bg} ${sc.color}`}>
+                          <Icon size={11} />{sc.label}
+                        </span>
+                      );
+                    })()}
+                    <h2 className="font-bold text-[#1A1A1A]">{selectedCycle.name}</h2>
+                  </div>
+                  <p className="text-sm text-[#757575]">
+                    {new Date(selectedCycle.periodFrom).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {' → '}
+                    {new Date(selectedCycle.periodTo).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-[#757575]">Total Weight</p>
+                  <p className={`text-lg font-bold ${totalWeight > 100 ? 'text-red-500' : totalWeight === 100 ? 'text-green-600' : 'text-orange-500'}`}>{totalWeight}%</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {objectives.length === 0 ? (
+            <div className="bg-white rounded-xl border border-[#E2E0DC] py-12 text-center">
+              <Target size={36} className="text-[#E2E0DC] mx-auto mb-3" />
+              <p className="text-[#1A1A1A] font-medium">No objectives defined</p>
+              <p className="text-sm text-[#757575] mt-1">Your KRA objectives will appear here.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {objectives.map(obj => {
+                const sc = STATUS_CFG[obj.status] ?? STATUS_CFG.DRAFT;
+                const Icon = sc.icon;
+                return (
+                  <div key={obj.id} onClick={() => setSelectedObj(obj)}
+                    className="bg-white rounded-xl border border-[#E2E0DC] p-4 cursor-pointer hover:shadow-md hover:border-orange-200 transition-all">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${sc.bg} ${sc.color}`}>
+                            <Icon size={10} />{sc.label}
+                          </span>
+                          <span className="text-xs text-[#ABABAB]">Weight: {obj.weightage}%</span>
+                        </div>
+                        <h3 className="font-semibold text-[#1A1A1A] text-sm">{obj.title}</h3>
+                        {obj.target && <p className="text-xs text-[#757575] mt-0.5">Target: {obj.target}{obj.unit ? ` ${obj.unit}` : ''}</p>}
+                      </div>
+                      <ChevronRight size={16} className="text-[#ABABAB] flex-shrink-0 mt-1" />
+                    </div>
+                    <div className="mt-2 h-1 bg-gray-100 rounded-full">
+                      <div className="h-full bg-orange-400 rounded-full" style={{ width: `${(obj.weightage / 100) * 100}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {selectedObj && (
+        <ObjectivePanel
+          objective={selectedObj}
+          userId={user?.id ?? ''}
+          onClose={() => setSelectedObj(null)}
+        />
+      )}
+    </div>
+  );
+}

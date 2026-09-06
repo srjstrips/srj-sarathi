@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, CheckSquare, FolderKanban,
   Lightbulb, Target, Megaphone, MessageSquare, BarChart3,
-  Shield, Settings, Building2, Lock,
+  Shield, Settings, Building2, Lock, Calendar, Clock,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -40,6 +40,8 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Employees',     href: '/employees',     icon: Users,          permission: 'employees.view' },
       { label: 'Organization',  href: '/organization',  icon: Building2,      permission: 'organization.view' },
+      { label: 'Leave',         href: '/leave',         icon: Calendar,       permission: 'leave.view' },
+      { label: 'Attendance',    href: '/attendance',    icon: Clock,          permission: 'attendance.view' },
     ],
   },
   {

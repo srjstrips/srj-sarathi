@@ -1824,3 +1824,430 @@ model CallParticipant {
   @@unique([callId, userId])
   @@index([callId])
 }
+
+// ─── KRA ──────────────────────────────────────────────────────────────────────
+
+enum KraCycleStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+enum KraObjectiveStatus {
+  DRAFT
+  SUBMITTED
+  HOD_REVIEWED
+  HEAD_REVIEWED
+  FINALIZED
+}
+
+enum KraRaterType {
+  SELF
+  HOD
+  HEAD
+  ADMIN
+}
+
+model KraCycle {
+  id          String         @id @default(uuid())
+  name        String         @db.VarChar(200)
+  description String?
+  periodFrom  DateTime       @db.Date
+  periodTo    DateTime       @db.Date
+  status      KraCycleStatus @default(DRAFT)
+  createdById String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  objectives KraObjective[]
+
+  @@index([status])
+}
+
+model KraObjective {
+  id          String             @id @default(uuid())
+  cycleId     String
+  employeeId  String
+  title       String             @db.VarChar(500)
+  description String?
+  weightage   Int                @default(0)
+  target      String?
+  unit        String?            @db.VarChar(50)
+  status      KraObjectiveStatus @default(DRAFT)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  cycle   KraCycle   @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  ratings KraRating[]
+
+  @@index([cycleId])
+  @@index([employeeId])
+}
+
+model KraRating {
+  id          String       @id @default(uuid())
+  objectiveId String
+  raterType   KraRaterType
+  raterId     String
+  rating      Int
+  remarks     String?
+  ratedAt     DateTime     @default(now())
+
+  objective KraObjective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+
+  @@unique([objectiveId, raterType])
+  @@index([objectiveId])
+  @@index([raterId])
+}
+
+// ─── Leave ────────────────────────────────────────────────────────────────────
+
+enum LeaveApplicationStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model LeaveType {
+  id                 String   @id @default(uuid())
+  code               String   @unique @db.VarChar(20)
+  name               String   @db.VarChar(100)
+  description        String?
+  isPaid             Boolean  @default(true)
+  defaultDaysPerYear Int      @default(0)
+  maxCarryForward    Int      @default(0)
+  allowHalfDay       Boolean  @default(false)
+  requiresApproval   Boolean  @default(true)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  balances     LeaveBalance[]
+  applications LeaveApplication[]
+}
+
+model LeaveBalance {
+  id           String   @id @default(uuid())
+  employeeId   String
+  leaveTypeId  String
+  year         Int
+  allocated    Float    @default(0)
+  used         Float    @default(0)
+  pending      Float    @default(0)
+  carryForward Float    @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
+
+  @@unique([employeeId, leaveTypeId, year])
+  @@index([employeeId])
+}
+
+model LeaveApplication {
+  id           String                 @id @default(uuid())
+  employeeId   String
+  leaveTypeId  String
+  fromDate     DateTime               @db.Date
+  toDate       DateTime               @db.Date
+  days         Float
+  isHalfDay    Boolean                @default(false)
+  reason       String?
+  status       LeaveApplicationStatus @default(DRAFT)
+  appliedAt    DateTime               @default(now())
+  reviewedById String?
+  reviewedAt   DateTime?
+  reviewNote   String?
+  cancelledAt  DateTime?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([fromDate, toDate])
+}
+
+// ─── Attendance ───────────────────────────────────────────────────────────────
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HALF_DAY
+  LATE
+  LEAVE
+  HOLIDAY
+  WEEKEND
+}
+
+enum RegularizationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Attendance {
+  id            String           @id @default(uuid())
+  employeeId    String
+  date          DateTime         @db.Date
+  checkIn       DateTime?
+  checkOut      DateTime?
+  status        AttendanceStatus @default(PRESENT)
+  workingHours  Float?
+  isRegularized Boolean          @default(false)
+  remarks       String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  regularization AttendanceRegularization?
+
+  @@unique([employeeId, date])
+  @@index([employeeId])
+  @@index([date])
+}
+
+model AttendanceRegularization {
+  id           String               @id @default(uuid())
+  attendanceId String               @unique
+  employeeId   String
+  reason       String
+  requestedIn  DateTime?
+  requestedOut DateTime?
+  status       RegularizationStatus @default(PENDING)
+  reviewedById String?
+  reviewedAt   DateTime?
+  reviewNote   String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  attendance Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([status])
+}
+
+model Shift {
+  id           String   @id @default(uuid())
+  code         String   @unique @db.VarChar(20)
+  name         String   @db.VarChar(100)
+  startTime    String   @db.VarChar(10)
+  endTime      String   @db.VarChar(10)
+  graceMinutes Int      @default(0)
+  isNightShift Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  assignments ShiftAssignment[]
+}
+
+model ShiftAssignment {
+  id         String    @id @default(uuid())
+  employeeId String
+  shiftId    String
+  fromDate   DateTime  @db.Date
+  toDate     DateTime? @db.Date
+  createdAt  DateTime  @default(now())
+
+  shift Shift @relation(fields: [shiftId], references: [id])
+
+  @@index([employeeId])
+  @@index([shiftId])
+}
+
+model Holiday {
+  id          String   @id @default(uuid())
+  name        String   @db.VarChar(200)
+  date        DateTime @db.Date
+  description String?
+  isOptional  Boolean  @default(false)
+  companyId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date])
+}
+
+// ─── Notices / Announcements ──────────────────────────────────────────────────
+
+enum NoticeStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum NoticePriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model Notice {
+  id          String         @id @default(uuid())
+  title       String         @db.VarChar(500)
+  content     String
+  category    String?        @db.VarChar(100)
+  status      NoticeStatus   @default(DRAFT)
+  priority    NoticePriority @default(NORMAL)
+  isPinned    Boolean        @default(false)
+  requiresAck Boolean        @default(false)
+  publishedAt DateTime?
+  expiresAt   DateTime?
+  createdById String?
+  targetScope Json?
+  imageUrl    String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  acknowledgements NoticeAcknowledgement[]
+  comments         NoticeComment[]
+
+  @@index([status])
+  @@index([publishedAt])
+}
+
+model NoticeAcknowledgement {
+  id             String   @id @default(uuid())
+  noticeId       String
+  employeeId     String
+  acknowledgedAt DateTime @default(now())
+
+  notice Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+
+  @@unique([noticeId, employeeId])
+  @@index([noticeId])
+  @@index([employeeId])
+}
+
+model NoticeComment {
+  id        String   @id @default(uuid())
+  noticeId  String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  notice Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+
+  @@index([noticeId])
+}
+
+// ─── SOP ──────────────────────────────────────────────────────────────────────
+
+enum SopStatus {
+  DRAFT
+  SUBMITTED
+  HOD_APPROVED
+  DIRECTOR_APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+model Sop {
+  id             String    @id @default(uuid())
+  code           String?   @unique @db.VarChar(50)
+  title          String    @db.VarChar(500)
+  description    String?
+  category       String?   @db.VarChar(100)
+  departmentId   String?
+  status         SopStatus @default(DRAFT)
+  currentVersion Int       @default(1)
+  effectiveDate  DateTime? @db.Date
+  expiryDate     DateTime? @db.Date
+  createdById    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  versions  SopVersion[]
+  approvals SopApproval[]
+
+  @@index([status])
+  @@index([departmentId])
+}
+
+model SopVersion {
+  id          String   @id @default(uuid())
+  sopId       String
+  version     Int
+  content     String
+  storageKey  String?
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  sop Sop @relation(fields: [sopId], references: [id], onDelete: Cascade)
+
+  @@unique([sopId, version])
+  @@index([sopId])
+}
+
+model SopApproval {
+  id           String    @id @default(uuid())
+  sopId        String
+  approverType String    @db.VarChar(50)
+  approverId   String?
+  status       String    @db.VarChar(20)
+  note         String?
+  decidedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  sop Sop @relation(fields: [sopId], references: [id], onDelete: Cascade)
+
+  @@index([sopId])
+}
+
+// ─── In-App Notifications ─────────────────────────────────────────────────────
+
+enum NotificationStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+model Notification {
+  id           String             @id @default(uuid())
+  userId       String
+  title        String             @db.VarChar(500)
+  body         String?
+  type         String             @db.VarChar(100)
+  resourceType String?            @db.VarChar(100)
+  resourceId   String?
+  deepLink     String?
+  status       NotificationStatus @default(UNREAD)
+  metadata     Json?
+  sentAt       DateTime           @default(now())
+  readAt       DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([sentAt])
+}
+
+model PushToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  platform  String   @db.VarChar(20)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model NotificationPreference {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  emailEnabled       Boolean  @default(true)
+  pushEnabled        Boolean  @default(true)
+  taskAssigned       Boolean  @default(true)
+  leaveUpdates       Boolean  @default(true)
+  kraReminders       Boolean  @default(true)
+  kaizenUpdates      Boolean  @default(false)
+  announcementAlerts Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
