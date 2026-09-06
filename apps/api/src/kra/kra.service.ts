@@ -59,8 +59,8 @@ export class KraService {
     const items = await this.prisma.orm.public.KraObjective
       .where(where as any)
       .orderBy(m => (m as any).createdAt.desc())
-      .skip(skip)
-      .take(limit)
+      .offset(skip)
+      .limit(limit)
       .all();
 
     const total = Number(

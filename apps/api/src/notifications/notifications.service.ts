@@ -13,7 +13,7 @@ export class NotificationsService {
     return this.prisma.orm.public.Notification
       .where(where as any)
       .orderBy(m => (m as any).sentAt.desc())
-      .take(50)
+      .limit(50)
       .all();
   }
 

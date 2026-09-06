@@ -23,8 +23,8 @@ export class NoticesService {
     const items = await this.prisma.orm.public.Notice
       .where(where as any)
       .orderBy(m => (m as any).createdAt.desc())
-      .skip(skip)
-      .take(limit)
+      .offset(skip)
+      .limit(limit)
       .all();
 
     const total = Number(await this.prisma.orm.public.Notice.where(where as any).count());

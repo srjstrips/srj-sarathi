@@ -1850,14 +1850,14 @@ enum KraRaterType {
 
 model KraCycle {
   id          String         @id @default(uuid())
-  name        String         @db.VarChar(200)
+  name        VarChar(200)
   description String?
-  periodFrom  DateTime       @db.Date
-  periodTo    DateTime       @db.Date
+  periodFrom  Date
+  periodTo    Date
   status      KraCycleStatus @default(DRAFT)
   createdById String?
   createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  updatedAt   DateTime       @default(now())
 
   objectives KraObjective[]
 
@@ -1868,16 +1868,16 @@ model KraObjective {
   id          String             @id @default(uuid())
   cycleId     String
   employeeId  String
-  title       String             @db.VarChar(500)
+  title       VarChar(500)
   description String?
   weightage   Int                @default(0)
   target      String?
-  unit        String?            @db.VarChar(50)
+  unit        VarChar(50)?
   status      KraObjectiveStatus @default(DRAFT)
   createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  updatedAt   DateTime           @default(now())
 
-  cycle   KraCycle   @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  cycle   KraCycle    @relation(fields: [cycleId], references: [id], onDelete: Cascade)
   ratings KraRating[]
 
   @@index([cycleId])
@@ -1912,8 +1912,8 @@ enum LeaveApplicationStatus {
 
 model LeaveType {
   id                 String   @id @default(uuid())
-  code               String   @unique @db.VarChar(20)
-  name               String   @db.VarChar(100)
+  code               VarChar(20) @unique
+  name               VarChar(100)
   description        String?
   isPaid             Boolean  @default(true)
   defaultDaysPerYear Int      @default(0)
@@ -1922,7 +1922,7 @@ model LeaveType {
   requiresApproval   Boolean  @default(true)
   isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  updatedAt          DateTime @default(now())
 
   balances     LeaveBalance[]
   applications LeaveApplication[]
@@ -1938,7 +1938,7 @@ model LeaveBalance {
   pending      Float    @default(0)
   carryForward Float    @default(0)
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  updatedAt    DateTime @default(now())
 
   leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
 
@@ -1950,8 +1950,8 @@ model LeaveApplication {
   id           String                 @id @default(uuid())
   employeeId   String
   leaveTypeId  String
-  fromDate     DateTime               @db.Date
-  toDate       DateTime               @db.Date
+  fromDate     Date
+  toDate       Date
   days         Float
   isHalfDay    Boolean                @default(false)
   reason       String?
@@ -1962,13 +1962,13 @@ model LeaveApplication {
   reviewNote   String?
   cancelledAt  DateTime?
   createdAt    DateTime               @default(now())
-  updatedAt    DateTime               @updatedAt
+  updatedAt    DateTime               @default(now())
 
   leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
 
   @@index([employeeId])
   @@index([status])
-  @@index([fromDate, toDate])
+  @@index([fromDate])
 }
 
 // ─── Attendance ───────────────────────────────────────────────────────────────
@@ -1992,7 +1992,7 @@ enum RegularizationStatus {
 model Attendance {
   id            String           @id @default(uuid())
   employeeId    String
-  date          DateTime         @db.Date
+  date          Date
   checkIn       DateTime?
   checkOut      DateTime?
   status        AttendanceStatus @default(PRESENT)
@@ -2000,7 +2000,7 @@ model Attendance {
   isRegularized Boolean          @default(false)
   remarks       String?
   createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  updatedAt     DateTime         @default(now())
 
   regularization AttendanceRegularization?
 
@@ -2021,7 +2021,7 @@ model AttendanceRegularization {
   reviewedAt   DateTime?
   reviewNote   String?
   createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
+  updatedAt    DateTime             @default(now())
 
   attendance Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
 
@@ -2030,27 +2030,27 @@ model AttendanceRegularization {
 }
 
 model Shift {
-  id           String   @id @default(uuid())
-  code         String   @unique @db.VarChar(20)
-  name         String   @db.VarChar(100)
-  startTime    String   @db.VarChar(10)
-  endTime      String   @db.VarChar(10)
-  graceMinutes Int      @default(0)
-  isNightShift Boolean  @default(false)
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id           String      @id @default(uuid())
+  code         VarChar(20) @unique
+  name         VarChar(100)
+  startTime    VarChar(10)
+  endTime      VarChar(10)
+  graceMinutes Int         @default(0)
+  isNightShift Boolean     @default(false)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @default(now())
 
   assignments ShiftAssignment[]
 }
 
 model ShiftAssignment {
-  id         String    @id @default(uuid())
+  id         String   @id @default(uuid())
   employeeId String
   shiftId    String
-  fromDate   DateTime  @db.Date
-  toDate     DateTime? @db.Date
-  createdAt  DateTime  @default(now())
+  fromDate   Date
+  toDate     Date?
+  createdAt  DateTime @default(now())
 
   shift Shift @relation(fields: [shiftId], references: [id])
 
@@ -2059,14 +2059,14 @@ model ShiftAssignment {
 }
 
 model Holiday {
-  id          String   @id @default(uuid())
-  name        String   @db.VarChar(200)
-  date        DateTime @db.Date
+  id          String      @id @default(uuid())
+  name        VarChar(200)
+  date        Date
   description String?
-  isOptional  Boolean  @default(false)
+  isOptional  Boolean     @default(false)
   companyId   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now())
 
   @@index([date])
 }
@@ -2088,9 +2088,9 @@ enum NoticePriority {
 
 model Notice {
   id          String         @id @default(uuid())
-  title       String         @db.VarChar(500)
+  title       VarChar(500)
   content     String
-  category    String?        @db.VarChar(100)
+  category    VarChar(100)?
   status      NoticeStatus   @default(DRAFT)
   priority    NoticePriority @default(NORMAL)
   isPinned    Boolean        @default(false)
@@ -2101,7 +2101,7 @@ model Notice {
   targetScope Json?
   imageUrl    String?
   createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  updatedAt   DateTime       @default(now())
 
   acknowledgements NoticeAcknowledgement[]
   comments         NoticeComment[]
@@ -2129,7 +2129,7 @@ model NoticeComment {
   authorId  String
   content   String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now())
 
   notice Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
 
@@ -2148,19 +2148,19 @@ enum SopStatus {
 }
 
 model Sop {
-  id             String    @id @default(uuid())
-  code           String?   @unique @db.VarChar(50)
-  title          String    @db.VarChar(500)
+  id             String       @id @default(uuid())
+  code           VarChar(50)? @unique
+  title          VarChar(500)
   description    String?
-  category       String?   @db.VarChar(100)
+  category       VarChar(100)?
   departmentId   String?
-  status         SopStatus @default(DRAFT)
-  currentVersion Int       @default(1)
-  effectiveDate  DateTime? @db.Date
-  expiryDate     DateTime? @db.Date
+  status         SopStatus    @default(DRAFT)
+  currentVersion Int          @default(1)
+  effectiveDate  Date?
+  expiryDate     Date?
   createdById    String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @default(now())
 
   versions  SopVersion[]
   approvals SopApproval[]
@@ -2185,14 +2185,14 @@ model SopVersion {
 }
 
 model SopApproval {
-  id           String    @id @default(uuid())
+  id           String      @id @default(uuid())
   sopId        String
-  approverType String    @db.VarChar(50)
+  approverType VarChar(50)
   approverId   String?
-  status       String    @db.VarChar(20)
+  status       VarChar(20)
   note         String?
   decidedAt    DateTime?
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime    @default(now())
 
   sop Sop @relation(fields: [sopId], references: [id], onDelete: Cascade)
 
@@ -2210,10 +2210,10 @@ enum NotificationStatus {
 model Notification {
   id           String             @id @default(uuid())
   userId       String
-  title        String             @db.VarChar(500)
+  title        VarChar(500)
   body         String?
-  type         String             @db.VarChar(100)
-  resourceType String?            @db.VarChar(100)
+  type         VarChar(100)
+  resourceType VarChar(100)?
   resourceId   String?
   deepLink     String?
   status       NotificationStatus @default(UNREAD)
@@ -2227,13 +2227,13 @@ model Notification {
 }
 
 model PushToken {
-  id        String   @id @default(uuid())
+  id        String      @id @default(uuid())
   userId    String
-  token     String   @unique
-  platform  String   @db.VarChar(20)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  token     String      @unique
+  platform  VarChar(20)
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @default(now())
 
   @@index([userId])
 }
@@ -2249,5 +2249,5 @@ model NotificationPreference {
   kaizenUpdates      Boolean  @default(false)
   announcementAlerts Boolean  @default(true)
   createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  updatedAt          DateTime @default(now())
 }

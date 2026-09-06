@@ -110,8 +110,8 @@ export class LeaveService {
     const items = await this.prisma.orm.public.LeaveApplication
       .where(where as any)
       .orderBy(m => (m as any).appliedAt.desc())
-      .skip(skip)
-      .take(limit)
+      .offset(skip)
+      .limit(limit)
       .all();
 
     const total = Number(
