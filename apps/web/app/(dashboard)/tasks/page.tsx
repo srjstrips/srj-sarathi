@@ -41,7 +41,6 @@ function toUiStatus(s: string): Status {
   if (s === 'COMPLETED' || s === 'APPROVED') return 'DONE';
   if (s === 'IN_PROGRESS' || s === 'ACKNOWLEDGED') return 'IN_PROGRESS';
   if (s === 'SUBMITTED_FOR_REVIEW' || s === 'REWORK') return 'IN_REVIEW';
-  if (s === 'TODO' || s === 'DRAFT' || s === 'ASSIGNED' || s === 'PENDING') return 'TODO';
   return 'TODO';
 }
 
@@ -229,7 +228,7 @@ export default function TasksPage() {
       const raw: any[] = res?.items ?? (Array.isArray(res) ? res : []);
       let normalized = raw.map(normalizeTask);
       if (activeTab === 'overdue')   normalized = normalized.filter(t => t.overdue && t.status !== 'DONE');
-      if (activeTab === 'completed') normalized = normalized.filter(t => t.status === 'DONE' || t.status === 'COMPLETED');
+      if (activeTab === 'completed') normalized = normalized.filter(t => t.status === 'DONE');
       setTasks(normalized);
     } catch (e) {
       setError(getErrorMessage(e));
