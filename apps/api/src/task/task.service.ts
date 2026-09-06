@@ -59,7 +59,7 @@ export class TaskService {
 
     const tasks = await this.prisma.orm.public.Task
       .where(where)
-      .orderBy(m => (m as any).dueDate.asc())
+      .orderBy(m => (m as any).createdAt.desc())
       .all() as any[];
 
     return tasks.filter((t: any) => taskIds.includes(t.id));
