@@ -17,7 +17,7 @@ export class TaskService {
   // ─── Task number generation ───────────────────────────────────────────────
 
   private async generateTaskNumber(): Promise<string> {
-    const count = Number(await this.prisma.orm.public.Task.count());
+    const count = Number(await this.prisma.orm.public.Task.where({} as any).count());
     return `TASK-${String(count + 1).padStart(6, '0')}`;
   }
 
@@ -38,7 +38,7 @@ export class TaskService {
     const offset = filter.offset ?? 0;
 
     return this.prisma.orm.public.Task
-      .where(where)
+      .where(where as any)
       .orderBy(m => (m as any).createdAt.desc())
       .limit(limit)
       .offset(offset)
