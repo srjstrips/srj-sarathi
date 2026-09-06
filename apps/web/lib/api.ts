@@ -10,7 +10,7 @@ export const api: AxiosInstance = axios.create({
 
 // Attach access token
 api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && !config.headers.Authorization) {
     const token = localStorage.getItem('access_token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
   }
