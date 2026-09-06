@@ -58,7 +58,7 @@ export class TaskService {
     if (filter.status) where['status'] = filter.status;
 
     const tasks = await this.prisma.orm.public.Task
-      .where(where)
+      .where(where as any)
       .orderBy(m => (m as any).createdAt.desc())
       .all() as any[];
 
