@@ -39,13 +39,14 @@ export const useAuthStore = create<AuthState>()(
       login: async (identifier, password) => {
         set({ isLoading: true });
         try {
-          const { data } = await api.post('/auth/login', { username: identifier, password });
-          localStorage.setItem('access_token',  data.accessToken);
-          localStorage.setItem('refresh_token', data.refreshToken);
-          set({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+          const { data: loginResp } = await api.post('/auth/login', { username: identifier, password });
+          const tokens = loginResp.data ?? loginResp;
+          localStorage.setItem('access_token',  tokens.accessToken);
+          localStorage.setItem('refresh_token', tokens.refreshToken);
+          set({ accessToken: tokens.accessToken, refreshToken: tokens.refreshToken });
           // fetch user profile with the new token
           const { data: meResp } = await api.get('/auth/me', {
-            headers: { Authorization: `Bearer ${data.accessToken}` },
+            headers: { Authorization: `Bearer ${tokens.accessToken}` },
           });
           const me = meResp.data ?? meResp;
           const mapped: AuthUser = {
