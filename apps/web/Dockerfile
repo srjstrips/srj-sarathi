@@ -1,13 +1,23 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# Copy root workspace files
 COPY package*.json ./
+COPY tsconfig.base.json ./
+
+# Copy web package.json
 COPY apps/web/package*.json ./apps/web/
-RUN npm install --workspace=apps/web
+
+# Install ALL workspace deps from root (picks up tw-animate-css and all hoisted packages)
+RUN npm install
+
+# Copy web source
 COPY apps/web ./apps/web
 COPY packages ./packages
-COPY tsconfig.base.json ./
+
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 RUN npm run build --workspace=apps/web
 
 FROM node:20-alpine AS runner
