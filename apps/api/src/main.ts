@@ -16,8 +16,9 @@ async function bootstrap() {
   app.use(helmet());
 
   // CORS
-  const origins = (process.env.CORS_ORIGINS ?? 'http://localhost:8081').split(',');
-  app.enableCors({ origin: origins, credentials: true });
+  const rawOrigins = process.env.CORS_ORIGINS ?? 'http://localhost:8081';
+  const origin = rawOrigins.trim() === '*' ? true : rawOrigins.split(',').map(o => o.trim());
+  app.enableCors({ origin, credentials: true });
 
   // Global prefix
   app.setGlobalPrefix('api/v1', { exclude: ['health', 'health/live', 'health/ready', 'version'] });
