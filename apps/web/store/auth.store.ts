@@ -42,12 +42,25 @@ export const useAuthStore = create<AuthState>()(
           const { data } = await api.post('/auth/login', { username: identifier, password });
           localStorage.setItem('access_token',  data.accessToken);
           localStorage.setItem('refresh_token', data.refreshToken);
-          set({
-            accessToken:  data.accessToken,
-            refreshToken: data.refreshToken,
-            user:         data.user,
-            isLoading:    false,
+          set({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+          // fetch user profile with the new token
+          const { data: me } = await api.get('/auth/me', {
+            headers: { Authorization: `Bearer ${data.accessToken}` },
           });
+          const mapped: AuthUser = {
+            id:          me.id,
+            email:       me.email,
+            name:        me.employee
+              ? `${me.employee.firstName} ${me.employee.lastName}`.trim()
+              : me.username,
+            role:        me.roles?.[0] ?? 'EMPLOYEE',
+            permissions: me.permissions ?? [],
+            companyId:   me.employee?.companyId ?? '',
+            departmentId: me.employee?.departmentId,
+            employeeId:  me.employee?.id,
+            avatar:      me.employee?.profilePicUrl,
+          };
+          set({ user: mapped, isLoading: false });
         } catch (e) {
           set({ isLoading: false });
           throw e;
@@ -68,8 +81,21 @@ export const useAuthStore = create<AuthState>()(
         const token = localStorage.getItem('access_token');
         if (!token) { set({ isInitialized: true }); return; }
         try {
-          const { data } = await api.get('/auth/me');
-          set({ user: data, isInitialized: true });
+          const { data: me } = await api.get('/auth/me');
+          const mapped: AuthUser = {
+            id:          me.id,
+            email:       me.email,
+            name:        me.employee
+              ? `${me.employee.firstName} ${me.employee.lastName}`.trim()
+              : me.username,
+            role:        me.roles?.[0] ?? 'EMPLOYEE',
+            permissions: me.permissions ?? [],
+            companyId:   me.employee?.companyId ?? '',
+            departmentId: me.employee?.departmentId,
+            employeeId:  me.employee?.id,
+            avatar:      me.employee?.profilePicUrl,
+          };
+          set({ user: mapped, isInitialized: true });
         } catch {
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
