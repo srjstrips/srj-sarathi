@@ -83,7 +83,7 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://YOUR_VPS_IP:3011
+        NEXT_PUBLIC_API_URL: http://72.62.228.27:3011
     image: srj_sarthi_web
     container_name: srj_sarthi_web
     restart: unless-stopped
