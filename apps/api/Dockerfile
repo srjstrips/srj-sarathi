@@ -23,8 +23,9 @@ RUN npm run api:build
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /app/apps/api/dist           ./dist
-COPY --from=builder /app/node_modules            ./node_modules
-COPY --from=builder /app/apps/api/node_modules   ./apps/api/node_modules
+COPY --from=builder /app/apps/api/dist                    ./dist
+COPY --from=builder /app/node_modules                     ./node_modules
+COPY --from=builder /app/apps/api/node_modules            ./apps/api/node_modules
+COPY --from=builder /app/apps/api/prisma                  ./apps/api/prisma
 EXPOSE 3001
 CMD ["node", "dist/main.js"]
