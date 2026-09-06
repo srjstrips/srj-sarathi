@@ -111,7 +111,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name:    'srj-sarthi-auth',
-      partialize: (s) => ({ accessToken: s.accessToken, refreshToken: s.refreshToken }),
+      partialize: (s) => ({ accessToken: s.accessToken, refreshToken: s.refreshToken, user: s.user }),
     },
   ),
 );

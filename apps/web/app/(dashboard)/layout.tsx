@@ -10,13 +10,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isInitialized = useAuthStore(s => s.isInitialized);
   const initialize    = useAuthStore(s => s.initialize);
 
-  useEffect(() => { initialize(); }, [initialize]);
+  useEffect(() => {
+    if (!isInitialized) initialize();
+  }, [isInitialized, initialize]);
 
   useEffect(() => {
     if (isInitialized && !user) router.replace('/login');
   }, [isInitialized, user, router]);
 
-  if (!isInitialized) {
+  if (!isInitialized && !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F8F7F4]">
         <div className="flex flex-col items-center gap-3">
