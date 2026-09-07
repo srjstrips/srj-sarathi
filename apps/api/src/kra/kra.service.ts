@@ -63,9 +63,8 @@ export class KraService {
       .limit(limit)
       .all();
 
-    const total = Number(
-      await this.prisma.orm.public.KraObjective.where(where as any).count(),
-    );
+    const { n } = await this.prisma.orm.public.KraObjective.where(where as any).aggregate(agg => ({ n: agg.count() }));
+    const total = Number(n);
     return { items, total, page, limit };
   }
 

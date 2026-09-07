@@ -27,7 +27,8 @@ export class NoticesService {
       .limit(limit)
       .all();
 
-    const total = Number(await this.prisma.orm.public.Notice.where(where as any).count());
+    const { n } = await this.prisma.orm.public.Notice.where(where as any).aggregate(agg => ({ n: agg.count() }));
+    const total = Number(n);
     return { items, total, page, limit };
   }
 
@@ -36,9 +37,9 @@ export class NoticesService {
     if (!notice) throw new NotFoundException('Notice not found');
     const [comments, ackCount] = await Promise.all([
       this.prisma.orm.public.NoticeComment.where({ noticeId: id } as any).orderBy(m => (m as any).createdAt.desc()).all(),
-      this.prisma.orm.public.NoticeAcknowledgement.where({ noticeId: id } as any).count(),
+      this.prisma.orm.public.NoticeAcknowledgement.where({ noticeId: id } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
     ]);
-    return { ...notice, comments, acknowledgementCount: Number(ackCount) };
+    return { ...notice, comments, acknowledgementCount: ackCount };
   }
 
   async create(dto: CreateNoticeDto, createdById: string) {

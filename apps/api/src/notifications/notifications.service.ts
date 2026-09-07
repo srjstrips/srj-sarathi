@@ -34,9 +34,8 @@ export class NotificationsService {
   }
 
   async getUnreadCount(userId: string) {
-    const count = Number(
-      await this.prisma.orm.public.Notification.where({ userId, status: 'UNREAD' } as any).count(),
-    );
+    const { n } = await this.prisma.orm.public.Notification.where({ userId, status: 'UNREAD' } as any).aggregate(agg => ({ n: agg.count() }));
+    const count = Number(n);
     return { count };
   }
 

@@ -19,8 +19,8 @@ export class KaizenService {
 
   private async generateKaizenNumber(): Promise<string> {
     const year = new Date().getFullYear();
-    const count = Number(await this.prisma.orm.public.Kaizen.count());
-    return `KAIZEN-${year}-${String(count + 1).padStart(6, '0')}`;
+    const { n } = await this.prisma.orm.public.Kaizen.aggregate(agg => ({ n: agg.count() }));
+    return `KAIZEN-${year}-${String(Number(n) + 1).padStart(6, '0')}`;
   }
 
   // ─── Categories ───────────────────────────────────────────────────────────
@@ -458,7 +458,8 @@ export class KaizenService {
     const kaizen = await this.prisma.orm.public.Kaizen.where({ id: kaizenId }).first() as any;
     if (!kaizen) throw new NotFoundException('Kaizen not found');
 
-    const count = Number(await this.prisma.orm.public.KaizenAttachment.where({ kaizenId }).count());
+    const { n: _kn } = await this.prisma.orm.public.KaizenAttachment.where({ kaizenId } as any).aggregate(agg => ({ n: agg.count() }));
+    const count = Number(_kn);
     if (count >= 15) throw new BadRequestException('Maximum 15 attachments allowed per Kaizen');
 
     const att = await this.prisma.orm.public.KaizenAttachment.create({
@@ -634,13 +635,13 @@ export class KaizenService {
   async getDashboard(actorId: string) {
     const [total, submitted, underReview, approved, implementation, implemented, rejected] =
       await Promise.all([
-        this.prisma.orm.public.Kaizen.where({ submittedById: actorId }).count(),
-        this.prisma.orm.public.Kaizen.where({ submittedById: actorId, status: 'SUBMITTED' as any }).count(),
-        this.prisma.orm.public.Kaizen.where({ submittedById: actorId, status: 'HOD_REVIEW' as any }).count(),
-        this.prisma.orm.public.Kaizen.where({ submittedById: actorId, status: 'APPROVED' as any }).count(),
-        this.prisma.orm.public.Kaizen.where({ submittedById: actorId, status: 'IMPLEMENTATION' as any }).count(),
-        this.prisma.orm.public.Kaizen.where({ submittedById: actorId, status: 'IMPLEMENTED' as any }).count(),
-        this.prisma.orm.public.Kaizen.where({ submittedById: actorId, status: 'REJECTED' as any }).count(),
+        this.prisma.orm.public.Kaizen.where({ submittedById: actorId } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+        this.prisma.orm.public.Kaizen.where({ submittedById: actorId, status: 'SUBMITTED' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+        this.prisma.orm.public.Kaizen.where({ submittedById: actorId, status: 'HOD_REVIEW' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+        this.prisma.orm.public.Kaizen.where({ submittedById: actorId, status: 'APPROVED' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+        this.prisma.orm.public.Kaizen.where({ submittedById: actorId, status: 'IMPLEMENTATION' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+        this.prisma.orm.public.Kaizen.where({ submittedById: actorId, status: 'IMPLEMENTED' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+        this.prisma.orm.public.Kaizen.where({ submittedById: actorId, status: 'REJECTED' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
       ]);
     return {
       total: Number(total), submitted: Number(submitted), underReview: Number(underReview),
@@ -655,13 +656,13 @@ export class KaizenService {
 
     const [total, pendingHodReview, pendingDirectorReview, approved,
            implementation, implemented, rejected] = await Promise.all([
-      this.prisma.orm.public.Kaizen.where(where).count(),
-      this.prisma.orm.public.Kaizen.where({ ...where, status: 'SUBMITTED' as any }).count(),
-      this.prisma.orm.public.Kaizen.where({ ...where, status: 'DIRECTOR_REVIEW' as any }).count(),
-      this.prisma.orm.public.Kaizen.where({ ...where, status: 'APPROVED' as any }).count(),
-      this.prisma.orm.public.Kaizen.where({ ...where, status: 'IMPLEMENTATION' as any }).count(),
-      this.prisma.orm.public.Kaizen.where({ ...where, status: 'IMPLEMENTED' as any }).count(),
-      this.prisma.orm.public.Kaizen.where({ ...where, status: 'REJECTED' as any }).count(),
+      this.prisma.orm.public.Kaizen.where(where as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+      this.prisma.orm.public.Kaizen.where({ ...where, status: 'SUBMITTED' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+      this.prisma.orm.public.Kaizen.where({ ...where, status: 'DIRECTOR_REVIEW' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+      this.prisma.orm.public.Kaizen.where({ ...where, status: 'APPROVED' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+      this.prisma.orm.public.Kaizen.where({ ...where, status: 'IMPLEMENTATION' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+      this.prisma.orm.public.Kaizen.where({ ...where, status: 'IMPLEMENTED' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+      this.prisma.orm.public.Kaizen.where({ ...where, status: 'REJECTED' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
     ]);
 
     return {

@@ -328,11 +328,11 @@ export class ProjectService {
 
   async getProjectTaskStats(projectId: string) {
     const [total, completed, inProgress, pending, overdue] = await Promise.all([
-      this.prisma.orm.public.Task.where({ projectId }).count(),
-      this.prisma.orm.public.Task.where({ projectId, status: 'COMPLETED' as any }).count(),
-      this.prisma.orm.public.Task.where({ projectId, status: 'IN_PROGRESS' as any }).count(),
-      this.prisma.orm.public.Task.where({ projectId, status: 'PENDING' as any }).count(),
-      this.prisma.orm.public.Task.where({ projectId, status: 'OVERDUE' as any }).count(),
+      this.prisma.orm.public.Task.where({ projectId } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+      this.prisma.orm.public.Task.where({ projectId, status: 'COMPLETED' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+      this.prisma.orm.public.Task.where({ projectId, status: 'IN_PROGRESS' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+      this.prisma.orm.public.Task.where({ projectId, status: 'PENDING' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+      this.prisma.orm.public.Task.where({ projectId, status: 'OVERDUE' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
     ]);
     return {
       total:      Number(total),

@@ -14,8 +14,8 @@ export class SecurityService {
 
   async getDashboard(): Promise<any> {
     const [blockedIps, blockedUsers, recentHighEvents, recentFailedLogins] = await Promise.all([
-      this.prisma.orm.public.BlockedIp.count(),
-      this.prisma.orm.public.BlockedUser.count(),
+      this.prisma.orm.public.BlockedIp.aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+      this.prisma.orm.public.BlockedUser.aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
       this.prisma.orm.public.SecurityEvent
         .where({ severity: 'HIGH' })
         .orderBy(m => (m as any).createdAt.desc())

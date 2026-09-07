@@ -29,7 +29,8 @@ export class AttendanceService {
       .limit(limit)
       .all();
 
-    const total = Number(await this.prisma.orm.public.Attendance.where(where as any).count());
+    const { n: _n1 } = await this.prisma.orm.public.Attendance.where(where as any).aggregate(agg => ({ n: agg.count() }));
+    const total = Number(_n1);
     return { items, total, page, limit };
   }
 
@@ -173,7 +174,8 @@ export class AttendanceService {
       .limit(limit)
       .all();
 
-    const total = Number(await this.prisma.orm.public.AttendanceRegularization.where(where as any).count());
+    const { n: _n2 } = await this.prisma.orm.public.AttendanceRegularization.where(where as any).aggregate(agg => ({ n: agg.count() }));
+    const total = Number(_n2);
     return { items, total, page, limit };
   }
 

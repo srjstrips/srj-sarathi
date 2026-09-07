@@ -344,10 +344,10 @@ export class PrivacyService {
 
   async getDashboard(): Promise<any> {
     const [pendingDeletions, pendingCorrections, pendingExports, publishedPolicies] = await Promise.all([
-      this.prisma.orm.public.AccountDeletionRequest.where({ status: 'DELETION_REQUESTED' }).count(),
-      this.prisma.orm.public.DataCorrectionRequest.where({ status: 'PENDING' }).count(),
-      this.prisma.orm.public.DataExportJob.where({ status: 'PENDING' }).count(),
-      this.prisma.orm.public.PrivacyPolicy.where({ status: 'PUBLISHED' }).count(),
+      this.prisma.orm.public.AccountDeletionRequest.where({ status: 'DELETION_REQUESTED' } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+      this.prisma.orm.public.DataCorrectionRequest.where({ status: 'PENDING' } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+      this.prisma.orm.public.DataExportJob.where({ status: 'PENDING' } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
+      this.prisma.orm.public.PrivacyPolicy.where({ status: 'PUBLISHED' } as any).aggregate(agg => ({ n: agg.count() })).then(r => Number(r.n)),
     ]);
 
     return { pendingDeletionRequests: pendingDeletions, pendingCorrectionRequests: pendingCorrections, pendingExportJobs: pendingExports, publishedPolicies };

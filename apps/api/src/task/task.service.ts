@@ -17,8 +17,8 @@ export class TaskService {
   // ─── Task number generation ───────────────────────────────────────────────
 
   private async generateTaskNumber(): Promise<string> {
-    const count = Number(await this.prisma.orm.public.Task.where({} as any).count());
-    return `TASK-${String(count + 1).padStart(6, '0')}`;
+    const { n } = await this.prisma.orm.public.Task.aggregate(agg => ({ n: agg.count() }));
+    return `TASK-${String(Number(n) + 1).padStart(6, '0')}`;
   }
 
   // ─── Task CRUD ────────────────────────────────────────────────────────────
@@ -362,7 +362,8 @@ export class TaskService {
     const task = await this.prisma.orm.public.Task.where({ id: taskId }).first();
     if (!task) throw new NotFoundException('Task not found');
 
-    const count = await this.prisma.orm.public.TaskChecklist.where({ taskId }).count();
+    const { n } = await this.prisma.orm.public.TaskChecklist.where({ taskId } as any).aggregate(agg => ({ n: agg.count() }));
+    const count = Number(n);
 
     const item = await this.prisma.orm.public.TaskChecklist.create({
       id:           uuidv4(),
@@ -637,11 +638,11 @@ export class TaskService {
     if (companyId) baseFilter['companyId'] = companyId;
 
     const [total, completed, inProgress, pending, cancelled] = await Promise.all([
-      this.prisma.orm.public.Task.where({ ...baseFilter, isArchived: false }).count(),
-      this.prisma.orm.public.Task.where({ ...baseFilter, status: 'COMPLETED' as any }).count(),
-      this.prisma.orm.public.Task.where({ ...baseFilter, status: 'IN_PROGRESS' as any }).count(),
-      this.prisma.orm.public.Task.where({ ...baseFilter, status: 'PENDING' as any }).count(),
-      this.prisma.orm.public.Task.where({ ...baseFilter, status: 'CANCELLED' as any }).count(),
+      this.prisma.orm.public.Task.where({ ...baseFilter, isArchived: false } as any).aggregate(agg => ({ n: agg.count() })).then(r => r.n),
+      this.prisma.orm.public.Task.where({ ...baseFilter, status: 'COMPLETED' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => r.n),
+      this.prisma.orm.public.Task.where({ ...baseFilter, status: 'IN_PROGRESS' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => r.n),
+      this.prisma.orm.public.Task.where({ ...baseFilter, status: 'PENDING' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => r.n),
+      this.prisma.orm.public.Task.where({ ...baseFilter, status: 'CANCELLED' as any } as any).aggregate(agg => ({ n: agg.count() })).then(r => r.n),
     ]);
 
     const t = Number(total);
