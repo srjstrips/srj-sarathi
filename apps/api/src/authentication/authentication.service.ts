@@ -79,7 +79,10 @@ export class AuthenticationService {
     const recentAttempts = await this.prisma.orm.public.LoginAttempt
       .where({ userId: user.id, success: false })
       .all() as any[];
-    const recentFailed = recentAttempts.filter((a: any) => new Date(a.createdAt) >= lockoutSince).length;
+    const recentFailed = recentAttempts.filter((a: any) => {
+      const ts = a.createdAt?.epochMilliseconds ?? new Date(String(a.createdAt)).getTime();
+      return ts >= lockoutSince.getTime();
+    }).length;
 
     if (recentFailed >= MAX_FAILED_ATTEMPTS) {
       await recordAttempt(false, 'ACCOUNT_LOCKED');
@@ -153,7 +156,8 @@ export class AuthenticationService {
       .first();
 
     if (!session) throw new UnauthorizedException('Session not found or expired');
-    if (new Date() > new Date(session.expiresAt as any)) {
+    const sessionExpiry = session.expiresAt?.epochMilliseconds ?? new Date(String(session.expiresAt)).getTime();
+    if (Date.now() > sessionExpiry) {
       await this.prisma.orm.public.UserSession
         .where({ id: sessionId })
         .update({ status: 'EXPIRED' });
@@ -355,7 +359,8 @@ export class AuthenticationService {
 
     if (!blocked) return;
     if (blocked.isPermanent) throw new ForbiddenException('Access denied');
-    if (blocked.expiresAt && new Date() < new Date(blocked.expiresAt as any)) {
+    const blockExpiry = blocked.expiresAt?.epochMilliseconds ?? new Date(String(blocked.expiresAt)).getTime();
+    if (blocked.expiresAt && Date.now() < blockExpiry) {
       throw new ForbiddenException('Access denied');
     }
   }

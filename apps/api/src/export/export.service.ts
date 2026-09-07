@@ -74,7 +74,8 @@ export class ExportService {
     if (!job.storageKey || !fs.existsSync(job.storageKey)) {
       throw new NotFoundException('Export file not found — it may have expired');
     }
-    if (job.expiresAt && new Date() > new Date(job.expiresAt)) {
+    const exportExpiry = job.expiresAt ? (job.expiresAt?.epochMilliseconds ?? new Date(String(job.expiresAt)).getTime()) : null;
+    if (exportExpiry && Date.now() > exportExpiry) {
       throw new BadRequestException('Export file has expired');
     }
     return { filepath: job.storageKey as string, filename: `employees_export_${id}.xlsx` };

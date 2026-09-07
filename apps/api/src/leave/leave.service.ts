@@ -180,7 +180,7 @@ export class LeaveService {
       } as any);
 
     const balance = await this.prisma.orm.public.LeaveBalance
-      .where({ employeeId: (app as any).employeeId, leaveTypeId: (app as any).leaveTypeId, year: new Date((app as any).fromDate).getFullYear() } as any)
+      .where({ employeeId: (app as any).employeeId, leaveTypeId: (app as any).leaveTypeId, year: (() => { const raw = (app as any).fromDate; const ms = raw?.epochMilliseconds ?? new Date(String(raw)).getTime(); return new Date(ms).getFullYear(); })() } as any)
       .first();
 
     if (balance) {
@@ -213,7 +213,7 @@ export class LeaveService {
 
     if ((app as any).status === 'SUBMITTED') {
       const balance = await this.prisma.orm.public.LeaveBalance
-        .where({ employeeId, leaveTypeId: (app as any).leaveTypeId, year: new Date((app as any).fromDate).getFullYear() } as any)
+        .where({ employeeId, leaveTypeId: (app as any).leaveTypeId, year: (() => { const raw = (app as any).fromDate; const ms = raw?.epochMilliseconds ?? new Date(String(raw)).getTime(); return new Date(ms).getFullYear(); })() } as any)
         .first();
       if (balance) {
         await this.prisma.orm.public.LeaveBalance

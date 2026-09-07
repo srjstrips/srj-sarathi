@@ -43,8 +43,8 @@ export class ChatConversationService {
 
     // Sort by lastMessageAt desc
     result.sort((a, b) => {
-      const at = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
-      const bt = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      const at = a.lastMessageAt ? (a.lastMessageAt?.epochMilliseconds ?? new Date(String(a.lastMessageAt)).getTime()) : 0;
+      const bt = b.lastMessageAt ? (b.lastMessageAt?.epochMilliseconds ?? new Date(String(b.lastMessageAt)).getTime()) : 0;
       return bt - at;
     });
 

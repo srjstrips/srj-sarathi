@@ -79,8 +79,9 @@ export class AttendanceService {
     }
 
     const checkOutTime = dto.checkOut ? new Date(dto.checkOut) : new Date();
-    const checkInTime  = new Date((record as any).checkIn);
-    const workingHours = (checkOutTime.getTime() - checkInTime.getTime()) / 3600000;
+    const rawCheckIn = (record as any).checkIn;
+    const checkInMs = rawCheckIn?.epochMilliseconds ?? new Date(String(rawCheckIn)).getTime();
+    const workingHours = (checkOutTime.getTime() - checkInMs) / 3600000;
 
     await this.prisma.orm.public.Attendance
       .where({ id: (record as any).id } as any)
@@ -99,8 +100,9 @@ export class AttendanceService {
       .all();
 
     return all.filter((r: any) => {
-      const d = new Date(r.date);
-      return d >= fromDate && d <= toDate;
+      const rawDate = r.date;
+      const ms = rawDate?.epochMilliseconds ?? new Date(String(rawDate)).getTime();
+      return ms >= fromDate.getTime() && ms <= toDate.getTime();
     });
   }
 
@@ -218,7 +220,11 @@ export class AttendanceService {
       .all();
 
     if (!year) return all;
-    return all.filter((h: any) => new Date(h.date).getFullYear() === year);
+    return all.filter((h: any) => {
+      const rawDate = h.date;
+      const ms = rawDate?.epochMilliseconds ?? new Date(String(rawDate)).getTime();
+      return new Date(ms).getFullYear() === year;
+    });
   }
 
   async createHoliday(dto: CreateHolidayDto) {
